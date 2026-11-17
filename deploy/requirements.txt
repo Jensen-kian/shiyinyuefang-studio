@@ -1,0 +1,9 @@
+# 与当前开发环境一致的版本，保证行为可复现
+Flask==3.1.2
+gunicorn==23.0.0
+Pillow==12.1.0
+numpy==2.3.5
+requests==2.32.5
+pycryptodome==3.23.0
+cryptography==46.0.4
+fonttools==4.61.1

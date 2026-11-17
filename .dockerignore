@@ -1,0 +1,10 @@
+# 构建上下文精简：历史数据与运行时产物不进镜像
+__pycache__/
+*.pyc
+*.pyo
+*.log
+data/
+.git/
+.DS_Store
+deploy/.env
+deploy/nginx-active.conf

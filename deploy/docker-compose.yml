@@ -1,0 +1,49 @@
+name: shiyinyuefang
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    container_name: syyf-app
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Shanghai
+      PORT: "8011"
+    volumes:
+      # 制作记录与成品素材持久化到宿主机，重建容器不丢数据
+      - ../data:/app/data
+    expose:
+      - "8011"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8011/', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: syyf-nginx
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # deploy.sh 会从 nginx-http.conf / nginx-https.conf 生成该文件
+      - ./nginx-active.conf:/etc/nginx/conf.d/default.conf:ro
+      - certbot-www:/var/www/certbot:ro
+      - certbot-conf:/etc/letsencrypt:ro
+
+  # 不随 up 启动，仅在 deploy.sh / renew.sh 中通过 `run --rm` 调用
+  certbot:
+    image: certbot/certbot:latest
+    container_name: syyf-certbot
+    volumes:
+      - certbot-www:/var/www/certbot
+      - certbot-conf:/etc/letsencrypt
+
+volumes:
+  certbot-www:
+  certbot-conf:

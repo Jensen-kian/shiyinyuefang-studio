@@ -1,0 +1,28 @@
+# 登录凭据与密钥 —— 严禁入库
+data/netease_login_key.txt
+*.env
+.env
+deploy/.env
+*_key.txt
+*.pem
+*.key
+
+# 运行时数据与生成产物
+data/server.log
+data/history.json
+data/_keychain/
+data/_tmp/
+data/.trash/
+data/skin_shots/
+data/[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]/
+data/player_skins.backup_snapshot.json
+data/player_skins.v1_33.json
+
+# Python 缓存
+__pycache__/
+*.py[cod]
+*.pyo
+
+# 系统文件
+.DS_Store
+Thumbs.db

@@ -1,0 +1,1557 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>装扮中心</title>
+<style>
+  :root{
+    --red:#ec4141; --redd:#d63838; --bg:#f7f8fa; --card:#ffffff; --line:#eeeef2;
+    --txt:#3a3a3a; --mut:#9a9a9f; --gold:#c9974b;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font:14px/1.5 -apple-system,"Segoe UI",Roboto,"Noto Sans SC",sans-serif;padding-bottom:calc(64px + env(safe-area-inset-bottom))}
+  button{font-family:inherit;cursor:pointer}
+  main{padding:0 14px;max-width:680px;margin:0 auto}
+  .view{display:none}.view.on{display:block}
+
+  /* ---------- 顶部栏 ---------- */
+  .top{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--card);
+    position:sticky;top:0;z-index:30;border-bottom:1px solid var(--line)}
+  .top .logo{width:30px;height:30px;border-radius:8px;background:none;object-fit:contain;
+    display:block;box-shadow:0 2px 6px rgba(120,40,160,.25)}
+  .top h1{font-size:16px;margin:0;flex:1;font-weight:700}
+  .top .sp{width:32px;height:32px;border-radius:50%;background:var(--bg);border:none;font-size:15px}
+
+  /* ---------- 底部标签栏 ---------- */
+  nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);
+    display:flex;z-index:40;padding-bottom:env(safe-area-inset-bottom)}
+  nav button{flex:1;background:none;border:none;padding:7px 0 6px;display:flex;flex-direction:column;
+    align-items:center;gap:1px;color:var(--mut);font-size:10.5px}
+  nav button svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  nav button.on{color:var(--red);font-weight:600}
+
+  /* ---------- 首页 ---------- */
+  .banner{margin:14px 0;border-radius:14px;padding:20px 18px;color:#fff;position:relative;overflow:hidden;
+    background:linear-gradient(120deg,var(--red) 0%,#ff6a3d 100%)}
+  .banner h2{margin:0 0 6px;font-size:19px}
+  .banner p{margin:0 0 14px;font-size:12.5px;opacity:.92}
+  .banner .go{background:#fff;color:var(--red);border:none;border-radius:20px;padding:9px 22px;font-size:14px;font-weight:700}
+  .banner .vinyl{position:absolute;right:-34px;top:50%;transform:translateY(-50%);width:130px;height:130px;
+    border-radius:50%;border:12px solid rgba(255,255,255,.18);background:radial-gradient(circle,#fff3 0 22%,transparent 23%),
+    repeating-radial-gradient(circle,#0000 0 6px,#ffffff22 6px 7px)}
+  .sect{display:flex;align-items:baseline;justify-content:space-between;margin:20px 2px 10px}
+  .sect b{font-size:16px}
+  .sect span{font-size:12px;color:var(--mut)}
+  .hartists{display:flex;gap:14px;overflow-x:auto;padding:4px 2px 10px;scrollbar-width:none}
+  .hartists::-webkit-scrollbar{display:none}
+  .hart{width:66px;flex:none;text-align:center;cursor:pointer}
+  .hart img{width:62px;height:62px;border-radius:50%;object-fit:cover;background:#e8e8ec;border:2px solid #fff;
+    box-shadow:0 2px 8px rgba(0,0,0,.08)}
+  .hart .n{font-size:11.5px;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rcards{display:flex;gap:12px;overflow-x:auto;padding:2px 2px 8px;scrollbar-width:none}
+  .rcards::-webkit-scrollbar{display:none}
+  .rcard{width:120px;flex:none;background:var(--card);border:1px solid var(--line);border-radius:10px;
+    overflow:hidden;cursor:pointer}
+  .rcard img{width:100%;aspect-ratio:1;object-fit:cover;background:#e8e8ec;display:block}
+  .rcard .n{font-size:12px;font-weight:600;padding:6px 8px 1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rcard .s{font-size:10.5px;color:var(--mut);padding:0 8px 8px}
+  .steps{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:20px}
+  .steps .t{font-size:14px;font-weight:700;margin-bottom:10px}
+  .steps .row{display:flex;gap:10px;align-items:flex-start;padding:5px 0}
+  .steps .no{width:20px;height:20px;flex:none;border-radius:50%;background:var(--red);color:#fff;
+    font-size:11px;display:flex;align-items:center;justify-content:center;margin-top:1px}
+  .steps .tx{font-size:12.5px;color:#666}
+
+  /* ---------- 搜索 ---------- */
+  .searchbar{display:flex;gap:8px;margin:14px 0}
+  .searchbar input{flex:1;background:var(--card);border:1px solid var(--line);color:var(--txt);
+    border-radius:20px;padding:11px 18px;font-size:14px;outline:none}
+  .searchbar input:focus{border-color:var(--red)}
+  .searchbar button{border-radius:20px;padding:0 20px;border:none;background:var(--red);color:#fff;font-weight:600}
+  .hotwords{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+  .hotwords span{background:var(--card);border:1px solid var(--line);color:#666;border-radius:15px;
+    padding:6px 13px;font-size:12px;cursor:pointer}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:12px}
+  .grid.wide{grid-template-columns:repeat(auto-fill,minmax(116px,1fr))}
+  .card-item{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;cursor:pointer;transition:.15s}
+  .card-item:active{transform:scale(.97)}
+  .card-item .ph{width:100%;aspect-ratio:1;background:#e8e8ec}
+  .card-item .ph img{width:100%;height:100%;object-fit:cover;display:block}
+  .card-item .nm{font-size:12.5px;font-weight:600;padding:7px 9px 2px;line-height:1.35;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:36px}
+  .card-item .sub{font-size:11px;color:var(--mut);padding:0 9px 9px}
+
+  /* ---------- 页面头（歌手/专辑） ---------- */
+  .pageback{display:flex;align-items:center;gap:8px;padding:12px 2px;color:var(--mut);background:none;border:none;font-size:13px}
+
+  /* ---------- 歌手主页 ---------- */
+  .hero{position:relative;height:240px;border-radius:12px;overflow:hidden;margin-top:8px}
+  .hero img.bg{width:100%;height:100%;object-fit:cover;object-position:center 20%}
+  .hero .shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.02) 30%,rgba(20,20,20,.85) 92%)}
+  .hero .cap{position:absolute;left:16px;bottom:14px;right:16px;color:#fff}
+  .hero .cap h2{margin:0;font-size:26px;text-shadow:0 2px 8px rgba(0,0,0,.6)}
+  .hero .cap .meta{font-size:12.5px;margin-top:3px;opacity:.9;text-shadow:0 1px 4px rgba(0,0,0,.6)}
+  .atabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin:14px 0 0;
+    overflow-x:auto;background:var(--bg);position:sticky;top:56px;z-index:10}
+  .atabs button{background:transparent;border:none;color:var(--mut);padding:11px 14px;font-size:14px;
+    border-bottom:2.5px solid transparent;white-space:nowrap}
+  .atabs button.on{color:var(--red);border-bottom-color:var(--red);font-weight:700}
+  .atabs button sup{font-size:10px}
+  .apane{padding-top:12px;min-height:200px}
+  .arow{display:flex;gap:12px;align-items:center;padding:9px 6px;border-radius:8px;cursor:pointer}
+  .arow:active{background:#efeff3}
+  .arow img{width:52px;height:52px;border-radius:6px;object-fit:cover;background:#e8e8ec}
+  .arow .t{flex:1;min-width:0}
+  .arow .t .n{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .arow .t .s{font-size:11.5px;color:var(--mut);margin-top:1px}
+  .sortline{font-size:12px;color:var(--mut);padding:2px 6px 6px}
+  /* 歌曲页：播放条 + 演唱/作词/作曲/编曲/制作/演奏 分类 */
+  .pbar{display:flex;align-items:center;gap:11px;padding:8px 4px 12px;border-bottom:1px solid var(--line)}
+  .pbar .pl{flex:none;width:36px;height:36px;border-radius:50%;border:1px solid var(--red);color:var(--red);
+    background:#fff;font-size:15px;display:flex;align-items:center;justify-content:center}
+  .pbar .ti{flex:1;min-width:0}
+  .pbar .ti b{font-size:14.5px;font-weight:600}
+  .pbar .ti span{display:block;font-size:11.5px;color:var(--mut);margin-top:2px}
+  .pbar .fv{flex:none;border:1px solid var(--line);background:var(--card);color:var(--txt);
+    border-radius:17px;padding:7px 14px;font-size:12.5px}
+  .rolebar{display:flex;gap:8px;overflow-x:auto;padding:11px 4px 8px;-webkit-overflow-scrolling:touch}
+  .rolebar::-webkit-scrollbar{display:none}
+  .rolechip{flex:none;padding:7px 15px;border-radius:18px;border:1px solid var(--line);
+    background:var(--card);font-size:13px;color:var(--txt)}
+  .rolechip.on{background:var(--red);border-color:var(--red);color:#fff;font-weight:600}
+  /* 全部 XX 全量列表入口 + 页 */
+  .allentry{display:flex;align-items:center;justify-content:space-between;margin:10px 4px 4px;
+    padding:11px 14px;border-radius:10px;background:var(--card);border:1px solid var(--line);
+    color:var(--txt);font-size:13.5px;cursor:pointer}
+  .allentry:active{background:#efeff3}
+  .allentry .n{font-weight:600}
+  .allentry .c{font-size:12px;color:var(--mut)}
+  .allentry .ar{color:var(--red);font-size:16px;font-weight:700;margin-left:6px}
+  .allhead{display:flex;align-items:center;gap:10px;padding:6px 2px 12px;position:sticky;top:56px;
+    background:var(--bg);z-index:10}
+  .allhead .back{background:var(--card);border:1px solid var(--line);color:var(--txt);
+    border-radius:18px;padding:7px 14px;font-size:13px}
+  .allhead .at{font-size:16px;font-weight:700;flex:1}
+  .allhead .at span{font-size:12px;color:var(--mut);font-weight:400;margin-left:8px}
+  /* 歌手主页 · 简介卡 */
+  .card-box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 15px;margin-top:4px}
+  .bio .bt{font-size:15px;font-weight:700;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .bio .bt span{font-size:11.5px;color:var(--mut);font-weight:400;white-space:nowrap}
+  .bio .bx{font-size:13px;color:#555;line-height:1.75;margin-top:9px;
+    display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-line}
+  .bio .bx.open{-webkit-line-clamp:unset}
+  .bio .more{font-size:12.5px;color:var(--red);margin-top:8px;cursor:pointer}
+  .placeholder{color:var(--mut);text-align:center;padding:44px 20px;font-size:13px;line-height:2}
+
+  /* ---------- 专辑页 ---------- */
+  .ab-head{display:flex;gap:16px;align-items:flex-end}
+  .ab-head img{width:126px;height:126px;border-radius:10px;object-fit:cover;background:#e8e8ec;box-shadow:0 3px 12px rgba(0,0,0,.12)}
+  .ab-head .i{flex:1;min-width:0;padding-bottom:2px}
+  .ab-head .i h2{margin:0 0 4px;font-size:20px;line-height:1.3}
+  .ab-head .i .l{color:var(--mut);font-size:12.5px;margin:2px 0}
+  .ab-head .i .l b{color:var(--txt);font-weight:500}
+  .makebar{margin:16px 0 4px;display:flex;gap:10px}
+  .makebar button{flex:1;padding:13px;font-size:15px;border-radius:24px;border:none;
+    background:linear-gradient(90deg,var(--red),#ff6a3d);color:#fff;font-weight:700}
+  .tlist{margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .tlist .r{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid var(--line);font-size:13.5px}
+  .tlist .r:last-child{border-bottom:none}
+  .tlist .r .no{width:26px;color:var(--mut);text-align:right}
+  .tlist .r .tt{flex:1;min-width:0}
+  .tlist .r .tt .f{font-size:11.5px;color:var(--mut)}
+  .tlist .r .du{color:var(--mut);width:42px;text-align:right}
+
+  /* ---------- 制作弹层 ---------- */
+  .mask{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:50;display:none;align-items:flex-end;justify-content:center}
+  .mask.on{display:flex}
+  .sheet{background:var(--card);border-radius:16px 16px 0 0;width:100%;max-width:620px;max-height:92vh;
+    overflow-y:auto;padding:18px 18px 30px}
+  @media(min-width:640px){.mask{align-items:center}.sheet{border-radius:16px}}
+  .sheet .grab{width:40px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 14px}
+  .mk-head{display:flex;gap:12px;align-items:center;margin-bottom:6px}
+  .mk-head img{width:58px;height:58px;border-radius:8px;object-fit:cover;background:#e8e8ec}
+  .mk-head .t{flex:1;min-width:0}
+  .mk-head .t .n{font-size:16px;font-weight:700}
+  .mk-head .t .s{font-size:12px;color:var(--mut);margin-top:2px}
+  .mk-head .x{background:var(--bg);border:1px solid var(--line);color:var(--mut);width:30px;height:30px;
+    border-radius:50%;padding:0;font-size:14px}
+  .mk-note{font-size:12px;color:var(--red);background:rgba(236,65,65,.06);border:1px solid rgba(236,65,65,.2);
+    border-radius:8px;padding:8px 11px;margin:10px 0}
+  .sw{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .sw .c{width:42px;text-align:center}
+  .sw .c i{display:block;height:30px;border-radius:6px;border:1px solid var(--line)}
+  .sw .c span{font-size:10px;color:var(--mut)}
+  label{display:block;font-size:12px;color:var(--mut);margin:12px 0 4px}
+  input[type=text],textarea{width:100%;background:var(--bg);border:1px solid var(--line);color:var(--txt);
+    border-radius:8px;padding:10px 12px;font-size:14px;outline:none}
+  input:focus,textarea:focus{border-color:var(--red)}
+  details summary{cursor:pointer;color:var(--gold);font-size:13px;margin:10px 0 2px}
+  .bigbtn{width:100%;padding:14px;font-size:15.5px;border-radius:24px;margin-top:16px;border:none;
+    background:linear-gradient(90deg,var(--red),#ff6a3d);color:#fff;font-weight:700}
+  .bigbtn:disabled{opacity:.55}
+    font-size:13px;color:var(--ink);cursor:pointer}
+  button.ghost{background:#fff;color:#e60026;border:1.5px solid #e60026}
+  .msg{font-size:12.5px;margin-top:8px;min-height:16px}
+  .msg.ok{color:#2aa864}.msg.err{color:var(--red)}
+  .loading{display:inline-block;width:14px;height:14px;border:2px solid #ccc;border-top-color:var(--red);
+    border-radius:50%;animation:sp .7s linear infinite;vertical-align:middle}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .result .ov{background:#fff;border-radius:10px;padding:8px;margin:12px 0;border:1px solid var(--line)}
+  .result .ov img{width:100%;display:block}
+  .result .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+  .result .gallery figure{margin:0;background:#f2f2f5;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .result .gallery img{width:100%;display:block;background:#fff}
+  .result .gallery figcaption{font-size:10px;color:var(--mut);padding:4px 5px;text-align:center}
+  .dlrow{display:flex;gap:10px;margin-top:12px}
+  .dlrow a{flex:1;text-decoration:none}
+  .dlrow button{width:100%;padding:12px;border:none;border-radius:22px;background:var(--red);color:#fff;font-weight:700}
+  .hist .item{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--card);
+    border:1px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer;margin-bottom:10px}
+  .hist .item img{width:48px;height:48px;border-radius:6px;object-fit:cover;background:#e8e8ec}
+  .hist .item .tt{flex:1;min-width:0}
+  .hist .item .tt b{font-size:13.5px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hist .item .tt .m{font-size:11.5px;color:var(--mut);margin-top:2px}
+  .pill{font-size:11px;padding:2px 8px;border-radius:20px;background:var(--bg);border:1px solid var(--line);color:var(--mut);white-space:nowrap}
+  .empty{color:var(--mut);text-align:center;padding:30px;font-size:13px}
+
+  /* ---------- 我的制作：多选 / 批量删除 ---------- */
+  .sect span.mine-edit{font-size:12.5px;color:var(--red);font-weight:600;cursor:pointer;white-space:nowrap}
+  .hist .item .ck{flex:0 0 22px;width:22px;height:22px;border-radius:50%;border:2px solid #cfcfd6;
+    background:#fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700}
+  .hist .item.sel{border-color:var(--red);background:#fff4f2}
+  .hist .item.sel .ck{background:var(--red);border-color:var(--red)}
+  .hist .item.sel .ck::after{content:'✓'}
+  .minetools{position:fixed;left:0;right:0;bottom:52px;z-index:41;background:var(--card);
+    border-top:1px solid var(--line);display:flex;align-items:center;gap:10px;padding:10px 14px;
+    box-shadow:0 -3px 14px rgba(0,0,0,.08)}
+  .minetools .all{font-size:13px;color:var(--txt);cursor:pointer;white-space:nowrap}
+  .minetools .cnt{flex:1;font-size:12.5px;color:var(--mut);text-align:center}
+  .minetools button{border:none;border-radius:20px;padding:9px 15px;font-size:13px;font-weight:600;white-space:nowrap}
+  .minetools .done{background:var(--bg);color:var(--txt);border:1px solid var(--line)}
+  .minetools .del{background:var(--red);color:#fff}
+  .minetools .del:disabled{background:#e9c9c6;color:#fff}
+  .confirm-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:60;
+    display:flex;align-items:center;justify-content:center;padding:32px}
+  .confirm-box{background:var(--card);border-radius:16px;padding:22px 20px 16px;width:100%;max-width:320px;text-align:center}
+  .confirm-box b{font-size:16px}
+  .confirm-box p{font-size:13.5px;color:var(--txt);margin:12px 0 6px;line-height:1.6}
+  .confirm-box>span{font-size:11.5px;color:var(--mut)}
+  .confirm-box .btns{display:flex;gap:10px;margin-top:18px}
+  .confirm-box .btns button{flex:1;padding:11px;border:none;border-radius:22px;font-size:14px;font-weight:600}
+  #delCancel{background:var(--bg);color:var(--txt)}
+  #delConfirm{background:var(--red);color:#fff}
+  .trashbar{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--card);
+    border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:12px;
+    font-size:12.5px;color:var(--mut)}
+  .trashbar button{border:none;background:var(--bg);color:var(--red);border-radius:18px;
+    padding:7px 14px;font-size:12.5px;font-weight:600;white-space:nowrap}
+  .toast{position:fixed;left:50%;top:70px;transform:translateX(-50%);background:rgba(30,30,30,.9);
+    color:#fff;padding:10px 16px;border-radius:20px;font-size:12.5px;z-index:80;display:none;white-space:nowrap}
+
+  /* ---------- 歌曲行「制作」按钮（对齐 GitHub 列表的纯文字按钮）---------- */
+  .tlist .r .mkbtn{flex:none;border:none;background:none;color:#3a6ea5;font-size:12.5px;
+    padding:5px 0 5px 10px;white-space:nowrap}
+  .tlist .r .mkbtn:active{opacity:.55}
+  .pbar .fv.mk{border-color:#d9c9c2;background:#fbf3f0;color:#b8452f;font-weight:600}
+
+  /* ---------- 制作页（对齐 GitHub SONG / PRODUCT MAKER）---------- */
+  .mk-mask{position:fixed;inset:0;background:rgba(18,28,22,.58);z-index:60;display:none;
+    align-items:flex-end;justify-content:center}
+  .mk-mask.on{display:flex}
+  .mk-sheet{width:100%;max-width:680px;height:100vh;background:#f7f5ee;display:flex;flex-direction:column}
+  @media(min-width:680px){.mk-mask{align-items:center}.mk-sheet{height:94vh;border-radius:18px;overflow:hidden}}
+  .mk-topbar{flex:none;display:flex;align-items:center;justify-content:space-between;
+    padding:11px 15px;background:#f7f5ee;border-bottom:1px solid #e6e3d9}
+  .mk-topbar button{border:none;background:none;font-size:13px;color:#2c6249;padding:4px}
+  .mk-topbar .mk-x{font-size:17px;color:#8a8a80}
+  .mk-scroll{flex:1;overflow-y:auto;padding:14px 14px 26px;-webkit-overflow-scrolling:touch}
+  .mk-banner{position:relative;display:flex;gap:14px;padding:18px 16px;border-radius:14px;
+    background:linear-gradient(118deg,#1d4937,#2f6a4e);color:#fff;overflow:hidden}
+  .mk-banner>img{width:84px;height:84px;border-radius:9px;object-fit:cover;flex:none;background:#2b5843}
+  .mk-banner-t{position:relative;z-index:2;min-width:0}
+  .mk-banner .en{font-size:10px;letter-spacing:2px;opacity:.78;font-weight:700}
+  .mk-banner h2{font-size:21px;margin:7px 0 5px;font-weight:700}
+  .mk-banner .meta{font-size:12px;opacity:.88}
+  .mk-banner .link{margin-top:7px;border:none;background:none;color:#fff;padding:0;
+    font-size:12px;text-decoration:underline;opacity:.9}
+  .mk-banner .rings{position:absolute;right:-70px;top:-60px;width:270px;height:270px;border-radius:50%;
+    background:repeating-radial-gradient(circle,transparent 0 13px,rgba(255,255,255,.10) 13px 14px)}
+  .mk-coverbox{display:flex;gap:8px;margin-top:10px}
+  .mk-coverbox input{flex:1;min-width:0}
+  .mk-coverbox button{border:none;background:#2c6249;color:#fff;border-radius:8px;padding:0 14px;font-size:12.5px}
+  .mk-sect{font-size:11px;color:#bd4a32;font-weight:700;margin:18px 2px 4px}
+  .mk-h3{font-size:20px;margin:0 2px 6px;color:#28362c;font-weight:600}
+  .mk-note2{font-size:11.5px;color:#92938a;margin:0 2px 12px;line-height:1.5}
+  .mk-outs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .mk-out{position:relative;background:#eaf2e4;border:1.5px solid #bcd6b0;border-radius:12px;
+    padding:13px 12px;min-height:98px;cursor:pointer}
+  .mk-out.on{box-shadow:inset 0 0 0 1.5px #2c6249;border-color:#2c6249}
+  .mk-out.next{background:#f0efe9;border:1.5px dashed #d7d4c9;cursor:default;opacity:.72}
+  .mk-out.soon{background:#f3f3f1;border:1.5px dashed #d9d9d4;cursor:not-allowed;opacity:.6}
+  .mk-out.soon .id{color:#a6a69c}
+  .mk-out.soon .soon-tag{position:absolute;right:11px;top:11px;font-size:10px;font-weight:700;
+    color:#a6a69c;border:1px solid #cfcfc8;border-radius:6px;padding:1px 6px;letter-spacing:.5px}
+  .mk-out .id{font-size:10px;letter-spacing:.8px;color:#c05a3a;font-weight:700}
+  .mk-out.next .id{color:#9a9a90}
+  .mk-out .nm{font-size:15px;font-weight:600;margin:9px 0 4px;color:#26372c}
+  .mk-out .sub{font-size:11px;color:#7c8a7e}
+  .mk-out .ck{position:absolute;right:11px;top:11px;width:17px;height:17px;border-radius:50%;
+    border:1.5px solid #9dbb91;background:#fff}
+  .mk-out.on .ck{background:#2c6249;border-color:#2c6249;box-shadow:inset 0 0 0 3px #fff}
+  .mk-stylebar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:11px;
+    background:#fff;border:1px solid #e6e3d9;border-radius:12px;padding:11px 12px}
+  .mk-stylebar .lb{font-size:12px;font-weight:600;color:#3a463c}
+  .mk-chips{display:flex;gap:7px;flex-wrap:wrap}
+  .mk-chip{border:1.5px solid #bcd6b0;background:#eef5e9;color:#2c5a42;border-radius:18px;
+    padding:5px 13px;font-size:12.5px}
+  .mk-chip.on{background:#2c6249;color:#fff;border-color:#2c6249;font-weight:600}
+  .mk-panel{background:#fff;border:1px solid #e6e3d9;border-radius:12px;padding:12px;margin-top:12px}
+  .mk-panel-h{display:flex;align-items:center;justify-content:space-between}
+  .mk-panel-h b{font-size:13.5px;color:#28362c}
+  .mk-panel-h button{border:none;background:none;color:#2c6249;font-size:12px;padding:3px}
+  .mk-group{font-size:11px;color:#8c8d82;margin:13px 0 7px;border-top:1px dashed #ece9df;padding-top:10px}
+  .mk-group:first-child{border-top:none;margin-top:8px;padding-top:0}
+  .mk-row{display:flex;gap:9px;margin-bottom:9px}
+  .mk-fld{flex:1;min-width:0}
+  .mk-fld>span{display:block;font-size:11px;color:#8c8d82;margin-bottom:4px}
+  .mk-fld input,.mk-fld select{width:100%;border:1px solid #e2e0d6;border-radius:8px;
+    padding:8px 9px;font-size:12.5px;background:#fbfaf6;color:#333;outline:none}
+  .mk-fld input:focus,.mk-fld select:focus{border-color:#2c6249}
+  .mk-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px}
+  .mk-tag{border:1px solid #e2e0d6;background:#fbfaf6;border-radius:16px;
+    padding:5px 11px;font-size:12px;color:#6a6a62}
+  .mk-tag.on{background:#eaf2e4;border-color:#9dbb91;color:#2c5a42;font-weight:600}
+  .mk-checks label{display:flex;align-items:center;gap:8px;font-size:12.5px;color:#5a5a52;padding:5px 0}
+  .mk-checks input{accent-color:#2c6249;width:15px;height:15px}
+  .mk-details{margin:12px 2px 4px;font-size:12.5px;color:#6a6a62}
+  .mk-details summary{cursor:pointer;color:#2c6249;font-size:12.5px}
+  .mk-details .st{display:flex;gap:9px;font-size:12px;color:#666;padding:4px 0;line-height:1.5}
+  .mk-details .st i{flex:0 0 18px;height:18px;border-radius:50%;background:#2c6249;color:#fff;
+    font-size:11px;font-style:normal;display:flex;align-items:center;justify-content:center}
+  .mk-foot{flex:none;display:flex;align-items:center;gap:8px;padding:9px 14px calc(9px + env(safe-area-inset-bottom));
+    background:#fff;border-top:1px solid #e6e3d9}
+  .mk-foot>span{flex:1;font-size:10.5px;color:#94958a;line-height:1.35}
+  .mk-foot button{flex:none;border-radius:20px;padding:10px 16px;font-size:13px}
+  .mk-cancel{border:1px solid #e2e0d6;background:#fff;color:#666}
+  .mk-go{border:none;background:#204b39;color:#fff;font-weight:700}
+  .mk-go:disabled{opacity:.55}
+  .mk-res-h{display:flex;gap:9px;margin-bottom:12px}
+  .mk-res-h button{border:1px solid #d9d6cb;background:#fff;color:#2c6249;border-radius:18px;
+    padding:8px 13px;font-size:12.5px}
+  .mk-res-title{font-size:14px;font-weight:700;color:#28362c;margin-bottom:14px}
+  .mk-res-group{margin-bottom:17px}
+  .mk-res-group>b{display:block;font-size:13px;margin-bottom:8px;color:#28362c}
+  .mk-res-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .mk-res-grid figure{margin:0;background:#fff;border:1px solid #e6e3d9;border-radius:10px;overflow:hidden}
+  .mk-res-grid img{width:100%;display:block;aspect-ratio:1/1;object-fit:contain;background:#efeee8}
+  .mk-res-grid figure.tall img{aspect-ratio:3/4}
+  .mk-res-grid figcaption{font-size:10.5px;color:#7a7a72;padding:6px 7px;text-align:center}
+  .mk-res-grid figcaption a{color:#2c6249;text-decoration:none;margin-left:5px}
+  .mk-sheet .hidden{display:none!important}
+  .hidden{display:none}
+  .relink{color:var(--red);cursor:pointer;text-decoration:underline}
+
+  /* ---------- 左上角菜单 / 侧滑抽屉（对齐网易云首页路径） ---------- */
+  .top .hb{width:30px;height:30px;border:none;background:none;padding:5px;margin-left:-4px;
+    display:flex;flex-direction:column;justify-content:center;gap:4px;flex:none}
+  .top .hb i{display:block;height:2px;background:var(--txt);border-radius:2px}
+  .dr-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:62;display:none}
+  .dr-mask.on{display:block}
+  .dr{position:fixed;top:0;bottom:0;left:0;width:82%;max-width:330px;background:var(--card);
+    z-index:63;transform:translateX(-102%);transition:transform .22s ease;overflow-y:auto;
+    padding:16px 14px calc(20px + env(safe-area-inset-bottom))}
+  .dr.on{transform:none}
+  .dr .vip{background:linear-gradient(100deg,#4b4a63,#6d6a86);color:#fff;border-radius:11px;
+    padding:12px 14px;margin:4px 0 12px}
+  .dr .vip b{font-size:14px}.dr .vip p{margin:4px 0 0;font-size:11.5px;opacity:.85}
+  .dr .item{display:flex;align-items:center;gap:12px;padding:12px 10px;border-bottom:1px solid var(--line);
+    font-size:13.5px;cursor:pointer}
+  .dr .item .ic{width:20px;text-align:center;color:var(--mut);font-size:15px}
+  .dr .item .rt{margin-left:auto;color:var(--mut);font-size:11.5px}
+  .dr .item.hi{background:#fff4f4;border-radius:10px;border-bottom:none;color:var(--red);font-weight:700;margin:6px 0}
+  .dr .item.hi .ic,.dr .item.hi .rt{color:var(--red)}
+  .dr .foot{display:flex;gap:10px;margin-top:16px}
+  .dr .foot button{flex:1;background:var(--bg);border:none;border-radius:18px;padding:9px;font-size:13px;color:var(--txt)}
+
+  /* ---------- 装扮中心 · 播放器样式 ---------- */
+  .dress{position:fixed;inset:0;background:var(--bg);z-index:70;display:none;overflow-y:auto}
+  .dress.on{display:block}
+  .dress .dh{position:sticky;top:0;background:var(--card);z-index:3;display:flex;align-items:center;
+    gap:8px;padding:11px 13px;border-bottom:1px solid var(--line)}
+  .dress .dh b{flex:1;text-align:center;font-size:16px}
+  .dress .dh button{border:none;background:none;font-size:20px;color:var(--txt);width:26px;padding:0}
+  .dress .dh .rt{color:var(--mut);font-size:15px;display:flex;gap:12px}
+  .dress .panelbar{display:flex;gap:20px;overflow-x:auto;padding:11px 14px 7px;background:var(--card);
+    white-space:nowrap;font-size:14px;color:var(--mut);scrollbar-width:none}
+  .dress .panelbar span{padding:4px 0;cursor:pointer;flex:none}
+  .dress .panelbar span.on{color:var(--red);font-weight:700;position:relative}
+  .dress .panelbar span.on::after{content:'';position:absolute;left:0;right:0;bottom:-6px;height:2px;background:var(--red)}
+  .dress .catbar{display:flex;gap:18px;overflow-x:auto;padding:9px 14px;white-space:nowrap;
+    font-size:13px;color:var(--mut);background:var(--card);border-bottom:1px solid var(--line);scrollbar-width:none}
+  .dress .catbar span{cursor:pointer;padding:4px 0;flex:none}
+  .dress .catbar span.on{color:var(--txt);font-weight:700}
+  .dress .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:12px 13px 96px}
+  .sk{position:relative;cursor:pointer}
+  .sk .ph{width:100%;aspect-ratio:336/588;background:#eceef1;border-radius:8px;overflow:hidden;position:relative}
+  .sk .ph img{width:100%;height:100%;object-fit:cover;display:block}
+  .sk.on .ph{outline:2.5px solid var(--red);outline-offset:1px}
+  .sk .pick{position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;
+    background:var(--red);color:#fff;font-size:12px;display:none;align-items:center;justify-content:center}
+  .sk.on .pick{display:flex}
+  .sk .nm{font-size:12.5px;font-weight:600;margin:6px 0 2px;line-height:1.3;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .sk .rt{display:inline-flex;align-items:center;gap:3px;font-size:10.5px;color:var(--mut)}
+  .sk .rt .bd{background:#2b2b2b;color:#e6c47a;font-size:9px;padding:1px 4px;border-radius:3px;font-weight:700}
+  .sk .rt .bd.svip{background:#3a2f18;color:#f0d18a}
+  .sk .rt .pend{color:var(--mut)}
+  .dress .src{font-size:10.5px;color:var(--mut);line-height:1.5;padding:0 14px 16px}
+  .dress .dfoot{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);
+    padding:9px 13px calc(9px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:10px;z-index:4}
+  .dress .dfoot .t{flex:1;font-size:12px;color:var(--mut);line-height:1.4}
+  .dress .dfoot .t b{display:block;color:var(--txt);font-size:13px}
+  .dress .dfoot button{border:none;background:var(--red);color:#fff;border-radius:20px;padding:9px 18px;font-weight:700;font-size:13px}
+  .mk-skin-row{display:flex;align-items:center;gap:9px;margin:10px 0;padding:9px 11px;background:#f6f7f9;
+    border-radius:9px;font-size:12px;border:1px solid var(--line)}
+  .mk-skin-row img{width:26px;height:46px;object-fit:cover;border-radius:4px;background:#e6e6e6;flex:none}
+  .mk-skin-row .tx{flex:1;color:var(--mut)}
+  .mk-skin-row .tx b{display:block;color:var(--txt);font-size:13px;margin-bottom:1px}
+  .mk-skin-row button{border:none;background:none;color:var(--red);font-weight:600;font-size:12px;white-space:nowrap}
+</style>
+</head>
+<body>
+
+<div class="top" id="topBar">
+  <button class="hb" id="topMenu" aria-label="菜单"><i></i><i></i><i></i></button>
+  <h1 id="topTitle"></h1>
+  <button class="sp" id="topSearch">🔍</button>
+</div>
+
+<main>
+  <!-- ============ 首页 ============ -->
+  <section id="viewHome" class="view on">
+    <div class="banner">
+      <div class="vinyl"></div>
+      <h2>把任意专辑做成实体装帧</h2>
+      <p>封面取色定调 · 曲目自动核实 · 一键生成 10 张素材 + A4 拼版</p>
+      <button class="go" onclick="showTab('search')">开始制作</button>
+    </div>
+    <div class="sect"><b>热门歌手</b><span>点头像进入歌手主页</span></div>
+    <div class="hartists" id="hotArtists"><div class="empty" style="width:100%"><span class="loading"></span> 加载中…</div></div>
+    <div class="sect" id="recentSect" style="display:none"><b>最近制作</b><span>点封面回看成品</span></div>
+    <div class="rcards" id="recentCards"></div>
+    <div class="steps">
+      <div class="t">怎么用</div>
+      <div class="row"><div class="no">1</div><div class="tx">在「搜索」里输入歌手名，进入歌手主页</div></div>
+      <div class="row"><div class="no">2</div><div class="tx">打开专辑页，点「制作这张专辑」</div></div>
+      <div class="row"><div class="no">3</div><div class="tx">封面曲目自动载入，一键生成全套装帧素材</div></div>
+    </div>
+  </section>
+
+  <!-- ============ 搜索 ============ -->
+  <section id="viewSearch" class="view">
+    <div class="searchbar">
+      <input type="text" id="q" placeholder="搜索歌手、专辑，如：周杰伦">
+      <button id="doSearch">搜索</button>
+    </div>
+    <div id="searchHome">
+      <div class="sect" style="margin-top:6px"><b>热门搜索</b></div>
+      <div class="hotwords" id="hotWords"></div>
+    </div>
+    <div class="msg" id="searchMsg"></div>
+    <div id="searchResult"></div>
+  </section>
+
+  <!-- ============ 歌手主页 ============ -->
+  <section id="viewArtist" class="view">
+    <button class="pageback" id="artBack">‹ 返回</button>
+    <div class="hero">
+      <img class="bg" id="aBg" src="" alt="" onerror="this.style.opacity=.12">
+      <div class="shade"></div>
+      <div class="cap">
+        <h2 id="aName">—</h2>
+        <div class="meta" id="aMeta"></div>
+      </div>
+    </div>
+    <div class="atabs" id="aTabs">
+      <button data-t="home" class="on">主页</button>
+      <button data-t="songs">歌曲</button>
+      <button data-t="albums">专辑<sup id="aAlbumN"></sup></button>
+      <button data-t="goods">商品</button>
+      <button data-t="video">视频</button>
+    </div>
+    <div class="apane" id="aPane"></div>
+  </section>
+
+  <!-- ============ 专辑页 ============ -->
+  <section id="viewAlbum" class="view">
+    <button class="pageback" id="albBack">‹ 返回</button>
+    <div class="ab-head">
+      <img id="albPic" src="" alt="">
+      <div class="i">
+        <h2 id="albName">—</h2>
+        <div class="l">歌手：<b id="albArtist">—</b></div>
+        <div class="l">发行时间：<b id="albDate">—</b></div>
+        <div class="l" id="albCount"></div>
+      </div>
+    </div>
+    <div class="makebar">
+      <button id="openMake">⚙ 制作这张专辑</button>
+    </div>
+    <div class="msg" id="albMsg"></div>
+    <div class="sect" style="margin-top:16px"><b>曲目</b></div>
+    <div class="tlist" id="albTracks"></div>
+  </section>
+
+  <!-- ============ 我的 ============ -->
+  <section id="viewMine" class="view">
+    <div class="sect" style="margin-top:14px">
+      <b>我的制作</b>
+      <span style="display:flex;align-items:baseline;gap:14px"><span id="mineCount"></span><span class="mine-edit" id="mineEdit">管理</span></span>
+    </div>
+    <div class="trashbar" id="trashBar" style="display:none">
+      <span id="trashInfo">回收站</span>
+      <button id="trashClear">彻底清空</button>
+    </div>
+    <div class="hist" id="history"></div>
+  </section>
+
+  <!-- 多选删除工具条 -->
+  <div class="minetools" id="mineTools" style="display:none">
+    <span class="all" id="mineAll">全选</span>
+    <span class="cnt" id="mineSel">已选 0 项</span>
+    <button class="done" id="mineDone">完成</button>
+    <button class="del" id="mineDel" disabled>删除</button>
+  </div>
+</main>
+
+<!-- 删除二次确认 -->
+<div class="confirm-mask" id="delMask" style="display:none">
+  <div class="confirm-box">
+    <b id="cfmTitle">彻底删除</b>
+    <p id="cfmMsg">确定删除选中的记录吗？</p>
+    <span id="cfmNote">成品素材将从磁盘删除，不可恢复</span>
+    <div class="btns"><button id="delCancel">取消</button><button id="delConfirm">彻底删除</button></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<!-- ============ 歌曲制作页（SONG / PRODUCT MAKER）============ -->
+<div class="mk-mask" id="kcMask">
+  <div class="mk-sheet">
+    <div class="mk-topbar">
+      <button id="kcBack">← 返回歌曲列表</button>
+      <button class="mk-x" id="kcClose">✕</button>
+    </div>
+
+    <div class="mk-scroll" id="mkConfig">
+      <div class="mk-banner">
+        <img id="mkCover" src="" alt="">
+        <div class="mk-banner-t">
+          <div class="en">SONG / PRODUCT MAKER</div>
+          <h2>制作《<span id="mkSong">—</span>》</h2>
+          <div class="meta" id="mkMeta">—</div>
+          <button class="link" id="mkChangeCover">更换封面</button>
+        </div>
+        <div class="rings"></div>
+      </div>
+      <div class="mk-coverbox hidden" id="mkCoverBox">
+        <input type="text" id="mkCoverUrl" placeholder="粘贴封面图片地址 http/https">
+        <button id="mkCoverOk">确定</button>
+      </div>
+
+      <div class="mk-sect">选做商品</div>
+      <h3 class="mk-h3">先决定，要把这首歌做成什么</h3>
+      <p class="mk-note2">当前歌曲封面会自动带入已选商品，以后新增 NFC 小卡等品类也会在这里出现。</p>
+      <div class="mk-outs" id="mkOuts"></div>
+
+      <div class="mk-stylebar">
+        <span class="lb">钥匙扣商品款式（可同时生成）</span>
+        <div class="mk-chips" id="kcStyles"></div>
+      </div>
+
+      <div class="mk-skin-row" id="mkSkinRow">
+        <img id="mkSkinPic" src="" alt="">
+        <div class="tx">钥匙扣内腔使用的播放器样式<b id="mkSkinName">未选择（默认样式）</b></div>
+        <button id="mkSkinBtn">去选择 ›</button>
+      </div>
+
+      <div class="mk-panel">
+        <div class="mk-panel-h"><b>制作细节参数</b><button id="mkFold">收起</button></div>
+        <div id="mkParamBody">
+          <div class="mk-group">播放器样式 · 编辑选项（样式只定版式，封面 / 歌名 / 颜色随歌曲）</div>
+          <div class="mk-row">
+            <div class="mk-fld"><span>播放器背景</span>
+              <div class="mk-tags" id="mkSkinBgTags">
+                <button class="mk-tag" data-k="skin_bg" data-v="纯色">纯色</button>
+                <button class="mk-tag" data-k="skin_bg" data-v="光影">光影</button>
+              </div></div>
+            <div class="mk-fld"><span>唱片封面</span>
+              <div class="mk-tags" id="mkSkinCoverTags">
+                <button class="mk-tag" data-k="skin_cover" data-v="经典">经典</button>
+                <button class="mk-tag" data-k="skin_cover" data-v="做旧">做旧</button>
+              </div></div>
+          </div>
+
+          <div class="mk-group">播放界面</div>
+          <div class="mk-row">
+            <div class="mk-fld"><span>播放模式</span>
+              <select data-k="play_mode" id="mkPlayMode">
+                <option>列表循环</option><option>单曲循环</option><option>随机播放</option>
+              </select></div>
+            <div class="mk-fld"><span>播放列表标题</span><input type="text" data-k="list_title" id="mkListTitle"></div>
+          </div>
+          <div class="mk-row">
+            <div class="mk-fld"><span>热度 / 评论文案</span><input type="text" data-k="hot_text" id="mkHotText"></div>
+            <div class="mk-fld"><span>品质 / 自动</span><input type="text" data-k="auto_text" id="mkAutoText"></div>
+          </div>
+          <div class="mk-row">
+            <div class="mk-fld"><span>在线人数文案</span><input type="text" data-k="online_text" id="mkOnline"></div>
+          </div>
+
+          <div class="mk-group">商品图输出</div>
+          <div class="mk-row">
+            <div class="mk-fld"><span>主尺寸（px）</span><input type="text" data-k="main_w" id="mkMainW"></div>
+            <div class="mk-fld"><span>DPI</span><input type="text" data-k="dpi" id="mkDpi"></div>
+          </div>
+          <div class="mk-fld"><span>白底商品图画布</span>
+            <div class="mk-tags" id="mkCanvasTags">
+              <button class="mk-tag" data-k="canvas" data-v="方形">方形</button>
+              <button class="mk-tag" data-k="canvas" data-v="淘宝">淘宝</button>
+              <button class="mk-tag" data-k="canvas" data-v="天猫">天猫</button>
+              <button class="mk-tag" data-k="canvas" data-v="拼多多">拼多多</button>
+              <button class="mk-tag" data-k="canvas" data-v="抖店">抖店</button>
+              <button class="mk-tag" data-k="canvas" data-v="亚马逊">亚马逊</button>
+              <button class="mk-tag" data-k="canvas" data-v="Etsy">Etsy</button>
+            </div>
+          </div>
+          <div class="mk-fld"><span>白底商品图底色</span>
+            <div class="mk-tags" id="mkBgTags">
+              <button class="mk-tag" data-k="bg" data-v="白底">白底</button>
+              <button class="mk-tag" data-k="bg" data-v="透明">透明</button>
+              <button class="mk-tag" data-k="bg" data-v="两种">两种</button>
+            </div>
+          </div>
+
+          <div class="mk-group">黑胶播放界面</div>
+          <div class="mk-fld"><span>黑胶播放页宽度</span>
+            <div class="mk-tags" id="mkVinylTags">
+              <button class="mk-tag" data-k="vinyl_w" data-v="900">900</button>
+              <button class="mk-tag" data-k="vinyl_w" data-v="1200">1200</button>
+              <button class="mk-tag" data-k="vinyl_w" data-v="1500">1500</button>
+            </div>
+          </div>
+
+          <div class="mk-group">显示与封面规则</div>
+          <div class="mk-checks">
+            <label><input type="checkbox" data-k="vip" id="mkVip">VIP 标签</label>
+            <label><input type="checkbox" data-k="follow" id="mkFollow">歌手关注按钮</label>
+          </div>
+
+          <div class="mk-group">印刷与商品图附加输出</div>
+          <div class="mk-checks">
+            <label><input type="checkbox" data-k="extra_contact" id="mkContact">额外输出单品拼版总览</label>
+            <label><input type="checkbox" data-k="extra_a4" id="mkA4">播放界面 A4 四拼拼版</label>
+          </div>
+          <div class="mk-row" style="margin-top:8px">
+            <div class="mk-fld"><span>横向密度</span>
+              <select data-k="density" id="mkDensity">
+                <option value="16">横向密度 · 16 张</option>
+                <option value="32">横向密度 · 32 张</option>
+                <option value="48">横向密度 · 48 张</option>
+                <option value="64">横向密度 · 64 张</option>
+              </select></div>
+          </div>
+        </div>
+      </div>
+
+      <details class="mk-details">
+        <summary>制作工艺流程（4 步）</summary>
+        <div id="mkFlow"></div>
+      </details>
+    </div>
+
+    <div class="mk-scroll hidden" id="mkResultView"></div>
+
+    <div class="mk-foot" id="mkFoot">
+      <span id="mkFootNote">已匹配封面 · 默认完整商品包已选，可按需取消</span>
+      <button class="mk-cancel" id="mkCancel">取消</button>
+      <button class="mk-go" id="mkStart">开始制作 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 侧滑抽屉（首页左上角三条杠） ============ -->
+<div class="dr-mask" id="drMask"></div>
+<aside class="dr" id="drPanel">
+  <div class="vip"><b>黑胶 SVIP</b><p>装扮中心 · 播放器样式</p></div>
+  <div class="item" data-no="1"><span class="ic">♫</span>免费听 VIP 歌曲<span class="rt">未开启</span></div>
+  <div class="item" data-no="1"><span class="ic">✉</span>我的消息<span class="rt">47</span></div>
+  <div class="item" data-no="1"><span class="ic">◎</span>我的会员<span class="rt">免费兑换黑胶 VIP</span></div>
+  <div class="item hi" id="drDress"><span class="ic">✿</span>装扮中心<span class="rt">播放器样式 ›</span></div>
+  <div class="item" data-no="1"><span class="ic">♧</span>创作者中心</div>
+  <div class="item" data-no="1"><span class="ic">◷</span>最近播放<span class="rt">3 台设备登录</span></div>
+  <div class="item" data-no="1"><span class="ic">◴</span>定时关闭</div>
+  <div class="item" data-no="1"><span class="ic">▢</span>商城</div>
+  <div class="item" data-no="1"><span class="ic">◇</span>云村有票</div>
+  <div class="foot"><button data-no="1">⚙ 设置</button><button data-no="1">⊞ 更多</button></div>
+</aside>
+
+<!-- ============ 装扮中心 → 播放器样式 ============ -->
+<div class="dress" id="dressView">
+  <div class="dh">
+    <button id="dressBack">‹</button><b>装扮中心</b>
+  </div>
+  <div class="panelbar" id="dressPanels"></div>
+  <div class="catbar" id="dressCats"></div>
+  <div class="grid" id="dressGrid"></div>
+  <div class="src" id="dressSrc"></div>
+  <div class="dfoot">
+    <div class="t">当前播放器样式<b id="dressCur">未选择</b></div>
+    <button id="dressOk">确定</button>
+  </div>
+</div>
+
+<nav>
+  <button id="navHome" class="on" data-v="viewHome">
+    <svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>首页</button>
+  <button id="navSearch" data-v="viewSearch">
+    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>搜索</button>
+  <button id="navMine" data-v="viewMine">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>我的</button>
+</nav>
+
+<!-- ============ 制作弹层 ============ -->
+<div class="mask" id="makeMask">
+  <div class="sheet">
+    <div class="grab"></div>
+    <div class="mk-head">
+      <img id="mkPic" src="" alt="">
+      <div class="t">
+        <div class="n" id="mkTitle">—</div>
+        <div class="s" id="mkSub"></div>
+      </div>
+      <button class="x" id="mkClose">✕</button>
+    </div>
+    <div class="mk-note">✓ 封面与曲目已自动载入 · 配色按封面自动派生 · 无需上传任何图片</div>
+    <div class="sw" id="mkSw"></div>
+    <div class="msg" id="mkPalMsg"></div>
+
+    <label>厂牌（可空，留空则用歌手名）</label>
+    <input type="text" id="mkLabel" placeholder="如：GALAXY CORPORATION / 杰威尔音乐">
+    <label>EAN-13 条形码（可空）</label>
+    <input type="text" id="mkEan" placeholder="如：8804775454394">
+
+    <details>
+      <summary>风格文案（可选，留空则跳过对应元素）</summary>
+      <label>封面背面金句 1</label><input type="text" id="mkBq1">
+      <label>封面背面金句 2</label><input type="text" id="mkBq2">
+      <label>封面背面手写（英文）</label><input type="text" id="mkBsc">
+      <label>封底手写标语（可多行）</label><textarea id="mkTag" rows="2"></textarea>
+      <label>内盘底金句 1</label><input type="text" id="mkIq1">
+      <label>内盘底金句 2</label><input type="text" id="mkIq2">
+    </details>
+
+    <div id="mkResult" class="result"></div>
+    <div class="msg" id="mkMsg"></div>
+    <button class="bigbtn" id="mkGo">⚙ 一键生成全套素材</button>
+  </div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+/* 线上网关要求所有请求带 sharecode，否则返回"链接不完整"页 —— 统一给每个 API/图片地址追加 */
+const QS=location.search.startsWith('?')?location.search.slice(1):'';
+const SC=u=>{ if(!QS) return u; return u+(u.includes('?')?'&':'?')+QS; };
+const IMG=(u,s)=>u?SC('/api/img?s='+(s||400)+'&url='+encodeURIComponent(u)):'';
+const F=(u,o)=>fetch(SC(u),o);
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
+let curArtist=null, curAlbum=null, artistAlbums=[];
+let mineEdit=false, mineSel=new Set(), mineList=[];   /* 我的制作：多选删除状态 */
+const HOT_WORDS=['周杰伦','G-DRAGON','林俊杰','陈奕迅','邓紫棋','泰勒·斯威夫特','IU','薛之谦'];
+
+/* ---------- 底部导航 ---------- */
+const TITLES={viewHome:'',viewSearch:'搜索',viewArtist:'',viewAlbum:'',viewMine:'我的'};
+let curView='viewHome';
+function showTab(v){
+  closeDrawer(); closeDress();
+  curView=v;
+  ['viewHome','viewSearch','viewMine','viewArtist','viewAlbum'].forEach(id=>$('#'+id).classList.remove('on'));
+  $('#'+v).classList.add('on');
+  const map={viewHome:'navHome',viewSearch:'navSearch',viewMine:'navMine'};
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  $('#topTitle').textContent=TITLES[v]||'';
+  $('#topSearch').style.display=(v==='viewSearch')?'none':'';
+  /* 离开「我的」时退出编辑态，收起底部工具条 */
+  if(v!=='viewMine' && mineEdit){ mineEdit=false; mineSel.clear(); $('#mineTools').style.display='none'; }
+  if(v==='viewMine') loadHistory();
+  if(v==='viewHome') loadHome();       /* 回首页刷新「最近制作」，与删除结果同步 */
+  window.scrollTo(0,0);
+}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>showTab(b.dataset.v));
+$('#topSearch').onclick=()=>showTab('viewSearch');
+$('#artBack').onclick=()=>showTab('viewSearch');
+$('#albBack').onclick=()=>showTab('viewArtist');
+
+/* ---------- 首页 ---------- */
+function loadHome(){
+  F('/api/home').then(r=>r.json()).then(d=>{
+    if(d.ok&&d.hot_artists.length){
+      $('#hotArtists').innerHTML=d.hot_artists.map(a=>
+        `<div class="hart" data-aid="${a.id}" data-aname="${esc(a.name)}" data-apic="${esc(a.pic)}" data-aalias="${esc((a.alias||[]).join(' / '))}">
+          <img src="${IMG(a.pic,300)}" loading="lazy" onerror="this.style.opacity=.25">
+          <div class="n">${esc(a.name)}</div></div>`).join('');
+      document.querySelectorAll('#hotArtists .hart').forEach(el=>
+        el.onclick=()=>openArtist({id:el.dataset.aid,name:el.dataset.aname,pic:el.dataset.apic,alias:el.dataset.aalias}));
+    }else{
+      $('#hotArtists').innerHTML='<div class="empty" style="width:100%">加载失败，下拉刷新或稍后再试</div>';
+    }
+    if(d.recent&&d.recent.length){
+      $('#recentSect').style.display='';
+      $('#recentCards').innerHTML=d.recent.map(r=>
+        `<div class="rcard" data-rid="${r.id}">
+          <img src="${SC(r.cover)}" loading="lazy" onerror="this.style.opacity=.2">
+          <div class="n">${esc(r.album||'未命名')}</div>
+          <div class="s">${esc(r.artist||'')}</div></div>`).join('');
+      document.querySelectorAll('#recentCards .rcard').forEach(el=>
+        el.onclick=()=>viewHistory(el.dataset.rid));
+    }else{
+      $('#recentSect').style.display='none';
+      $('#recentCards').innerHTML='';
+    }
+  }).catch(()=>{$('#hotArtists').innerHTML='<div class="empty" style="width:100%">加载失败，稍后再试</div>';});
+}
+$('#hotWords').innerHTML=HOT_WORDS.map(w=>'<span>'+esc(w)+'</span>').join('');
+document.querySelectorAll('#hotWords span').forEach(el=>el.onclick=()=>{$('#q').value=el.textContent;doSearch();});
+
+/* ---------- 搜索 ---------- */
+$('#doSearch').onclick=doSearch; $('#q').onkeydown=e=>{if(e.key==='Enter')doSearch();};
+function doSearch(){
+  const q=$('#q').value.trim(); if(!q){$('#searchMsg').textContent='请输入歌手名或专辑名';return;}
+  $('#searchHome').style.display='none';
+  $('#searchMsg').innerHTML='<span class="loading"></span> 搜索中…'; $('#searchMsg').className='msg';
+  Promise.allSettled([
+    F('/api/search/artist',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:q})}).then(r=>r.json()),
+    F('/api/netease',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:q})}).then(r=>r.json())
+  ]).then(([ar,al])=>{
+    const artists=(ar.status==='fulfilled'&&ar.value.artists)||[];
+    const albums=((al.status==='fulfilled'&&al.value.candidates)||[]).filter(a=>!a.error);
+    if(artists.length||albums.length) $('#searchMsg').textContent='';
+    /* 与网易云一致：搜到歌手直接进歌手主页，跳过选择页 */
+    if(artists.length){
+      openArtist(artists[0]);
+      return;
+    }
+    if(albums.length){
+      $('#searchMsg').textContent='';
+      $('#searchResult').innerHTML='<div class="sect"><b>专辑</b><span>点封面进入专辑页</span></div><div class="grid wide">'+
+        albums.slice(0,12).map(a=>
+        `<div class="card-item" data-alid="${a.id}" data-alpic="${esc(a.pic)}">
+          <div class="ph"><img src="${IMG(a.pic,300)}" loading="lazy" onerror="this.style.opacity=.2"></div>
+          <div class="nm">${esc(a.name)}</div>
+          <div class="sub">${esc(a.artist||'')}${a.date?' · '+esc(a.date):''}${a.size?' · '+a.size+'首':''}</div>
+        </div>`).join('')+'</div>';
+      document.querySelectorAll('#searchResult .card-item[data-alid]').forEach(el=>el.onclick=()=>openAlbum(el.dataset.alid,el.dataset.alpic));
+      return;
+    }
+    $('#searchMsg').textContent='没有找到，换个关键词或稍后再试（搜索接口偶尔限流）'; $('#searchMsg').className='msg err';
+  });
+}
+
+/* ---------- 歌手主页 ---------- */
+let artistDetail=null;
+function openArtist(a){
+  curArtist=a; artistDetail=null; worksCache={}; curRole=1;
+  showTab('viewArtist');
+  $('#aName').textContent=a.name;
+  $('#aBg').src=IMG(a.pic,800);
+  $('#aMeta').textContent='加载中…';
+  $('#aAlbumN').textContent='';
+  document.querySelectorAll('#aTabs button').forEach(b=>b.classList.toggle('on',b.dataset.t==='home'));
+  showArtistPane('home');
+  $('#aPane').innerHTML='<div class="empty"><span class="loading"></span> 正在加载歌手主页…</div>';
+  /* 专辑列表 */
+  F('/api/artist/albums',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({artist_id:a.id,artist_name:a.name})}).then(r=>r.json()).then(d=>{
+    artistAlbums=d.albums||[];
+    $('#aAlbumN').textContent=artistAlbums.length;
+    refreshMeta();
+    if(document.querySelector('#aTabs button.on')&&document.querySelector('#aTabs button.on').dataset.t==='albums') renderArtistAlbums();
+  }).catch(()=>{ artistAlbums=[]; refreshMeta(); });
+  /* 歌手简介 + 热门歌曲 */
+  F('/api/artist/detail',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({artist_id:a.id})}).then(r=>r.json()).then(d=>{
+    artistDetail=d&&d.ok?d:{ok:false,error:(d&&d.error)||'加载失败'};
+    refreshMeta();
+    if(document.querySelector('#aTabs button.on')&&document.querySelector('#aTabs button.on').dataset.t!=='albums') showArtistPane(document.querySelector('#aTabs button.on').dataset.t);
+  }).catch(()=>{ artistDetail={ok:false,error:'加载失败'}; refreshMeta(); });
+}
+function refreshMeta(){
+  const parts=[];
+  if(curArtist&&curArtist.alias) parts.push(curArtist.alias);
+  const d=artistDetail&&artistDetail.ok?artistDetail:null;
+  if(d){
+    const nums=[d.musicSize?d.musicSize+' 首歌':null,d.albumSize?d.albumSize+' 专辑':null,d.mvSize?d.mvSize+' 视频':null].filter(Boolean);
+    if(nums.length) parts.push(nums.join(' / '));
+  }else if(artistAlbums.length){ parts.push(artistAlbums.length+' 张专辑'); }
+  $('#aMeta').textContent=parts.join(' · ')||'加载中…';
+}
+function retryArtist(){ if(curArtist) openArtist(curArtist); }
+function renderArtistAlbums(){
+  if(!artistAlbums.length){ $('#aPane').innerHTML='<div class="empty">没有找到该歌手的专辑</div>'; return; }
+  $('#aPane').innerHTML='<div class="sortline">按发行时间排序</div>'+artistAlbums.map(a=>
+    `<div class="arow" data-alid="${a.id}" data-alpic="${esc(a.pic)}">
+      <img src="${IMG(a.pic,200)}" loading="lazy" onerror="this.style.opacity=.25">
+      <div class="t"><div class="n">${esc(a.name)}</div>
+      <div class="s">${esc(a.date||a.year||'')}${a.size?' · '+a.size+' 首':''}</div></div>
+    </div>`).join('');
+  document.querySelectorAll('#aPane .arow').forEach(el=>el.onclick=()=>openAlbum(el.dataset.alid,el.dataset.alpic,curArtist));
+}
+document.querySelectorAll('#aTabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#aTabs button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');
+  showArtistPane(b.dataset.t);
+});
+function showArtistPane(t){
+  if(t==='albums'){ renderArtistAlbums(); return; }
+  if(t==='home'){
+    const d=artistDetail;
+    if(!d){ $('#aPane').innerHTML='<div class="empty"><span class="loading"></span> 正在加载歌手主页…</div>'; return; }
+    if(!d.ok){ $('#aPane').innerHTML='<div class="empty">'+esc(d.error||'加载失败')+'，<span class="relink" onclick="retryArtist()">点此重试</span></div>'; return; }
+    const brief=d.brief||'暂无介绍';
+    const stats=[d.musicSize?d.musicSize+' 首歌曲':null,d.albumSize?d.albumSize+' 张专辑':null,d.mvSize?d.mvSize+' 个视频':null].filter(Boolean).join(' · ');
+    $('#aPane').innerHTML=
+      '<div class="bio card-box"><div class="bt">歌手简介'+(stats?'<span>'+esc(stats)+'</span>':'')+'</div>'+
+      '<div class="bx" id="bioText">'+esc(brief)+'</div>'+
+      (brief.length>120?'<div class="more" id="bioMore">展开全部</div>':'')+'</div>'+
+      (artistAlbums.length?'<div class="sect"><b>最近专辑</b><span>点封面进入专辑页</span></div><div class="grid">'+artistAlbums.slice(0,6).map(a=>
+        `<div class="card-item" data-alid="${a.id}" data-alpic="${esc(a.pic)}">
+          <div class="ph"><img src="${IMG(a.pic,300)}" loading="lazy"></div>
+          <div class="nm">${esc(a.name)}</div><div class="sub">${esc(a.date||'')}</div></div>`).join('')+'</div>':'');
+    document.querySelectorAll('#aPane .card-item[data-alid]').forEach(el=>el.onclick=()=>openAlbum(el.dataset.alid,el.dataset.alpic,curArtist));
+    const bm=$('#bioMore');
+    if(bm) bm.onclick=()=>{ const bt=$('#bioText');
+      if(bt.classList.contains('open')){ bt.classList.remove('open'); bm.textContent='展开全部'; }
+      else{ bt.classList.add('open'); bm.textContent='收起'; } };
+    return;
+  }
+  if(t==='songs'){ renderSongsTab(); return; }
+  if(t==='goods'){ $('#aPane').innerHTML='<div class="placeholder">🛍 商品即将开放</div>'; return; }
+  $('#aPane').innerHTML='<div class="placeholder">🎬 视频即将开放</div>';
+}
+
+/* ---------- 歌曲页：演唱/作词/作曲/编曲/制作/演奏（网易云客户端同源数据）---------- */
+const ROLES=[['演唱',1],['作词',2],['作曲',3],['编曲',4],['制作',5],['演奏',6]];
+let worksCache={}, curRole=1;
+function renderSongsTab(){
+  $('#aPane').innerHTML=
+    '<div class="pbar"><div class="pl">▶</div>'+
+    '<div class="ti"><b>播放热门 50</b><span>网易云真实数据 · 按热度排序</span></div>'+
+    '<button class="fv mk" id="topMake">制作</button></div>'+
+    '<div class="rolebar">'+ROLES.map(([n,v])=>
+      '<button class="rolechip'+(v===curRole?' on':'')+'" data-w="'+v+'">'+n+'</button>').join('')+'</div>'+
+    '<div id="worksBox"><div class="empty"><span class="loading"></span> 正在抓取…</div></div>';
+  document.querySelectorAll('#aPane .rolechip').forEach(b=>b.onclick=()=>{
+    curRole=+b.dataset.w; renderSongsTab();
+  });
+  /* 顶部「制作」：进入制作页，默认带当前分类第一首歌 */
+  $('#topMake').onclick=()=>{
+    const d=worksCache[curRole], s=d&&d.songs&&d.songs[0];
+    if(s) openKC(songOf(s));
+    else { loadWorks(); toast('歌曲加载中，请稍候再点'); }
+  };
+  loadWorks();
+}
+function songOf(s){
+  return {name:s.name||'',artists:s.artists||'',pic:s.pic||'',album:s.album||'',dur:s.dur||''};
+}
+function loadWorks(){
+  const box=$('#worksBox'); if(!box||!curArtist) return;
+  if(worksCache[curRole]){ renderWorks(worksCache[curRole]); return; }
+  box.innerHTML='<div class="empty"><span class="loading"></span> 正在从网易云抓取…</div>';
+  const wt=curRole;
+  F('/api/artist/works',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({artist_id:curArtist.id,work_type:wt,limit:50})})
+  .then(r=>r.json()).then(d=>{
+    let data=d;
+    if(!(d&&d.ok)&&wt===1&&artistDetail&&artistDetail.ok&&artistDetail.songs&&artistDetail.songs.length){
+      /* 分类接口被限流时，演唱用歌手详情的热门歌曲兜底 */
+      data={ok:true,role:'演唱',songs:artistDetail.songs,total:artistDetail.songs.length,fallback:true};
+    }
+    if(!(data&&data.ok)){ data={ok:false,role:(ROLES.find(r=>r[1]===wt)||[])[0]||'',songs:[],error:(d&&d.error)||'抓取失败'}; }
+    worksCache[wt]=data;
+    if(curRole===wt) renderWorks(data);
+  }).catch(()=>{ box.innerHTML='<div class="empty">加载失败，<span class="relink" onclick="loadWorks()">点此重试</span></div>'; });
+}
+function renderWorks(d){
+  const box=$('#worksBox'); if(!box) return;
+  const songs=(d&&d.songs)||[];
+  if(!songs.length){
+    const role=esc((d&&d.role)||'');
+    box.innerHTML='<div class="empty">'+
+      ((d&&d.ok)
+        ? '网易云该接口暂无「'+role+'」分类作品<br><span style="font-size:12px;color:var(--mut)">演唱 / 作词 / 作曲 三类为网易云完整数据，编曲 · 制作 · 演奏 网易云未对外开放作品列表</span>'
+        : esc((d&&d.error)||'加载失败')+'，<span class="relink" onclick="loadWorks()">点此重试</span>')+'</div>';
+    return;
+  }
+  const role=esc((d&&d.role)||'');
+  const total=((d&&d.total)||0);
+  box.innerHTML='<div class="sortline">热门 '+songs.length+' 首'+
+    (total&&total>songs.length?' · 网易云共 '+total+' 首':'')+
+    (d.fallback?' · 分类接口限流，已用热门歌曲':'')+'</div>'+
+    '<div class="tlist">'+songs.map((x,i)=>
+      '<div class="r"><span class="no">'+(i+1)+'</span>'+
+      '<span class="tt">'+esc(x.name)+
+      '<div class="f">'+esc(x.artists||'')+(x.album?' · 《'+esc(x.album)+'》':'')+'</div></span>'+
+      '<span class="du">'+esc(x.dur||'')+'</span>'+
+      '<button class="mkbtn" data-i="'+i+'">制作</button></div>').join('')+'</div>'+
+    (total&&total>songs.length
+      ? '<div class="allentry" id="allEntry"><span class="n">查看全部'+role+'</span>'+
+        '<span class="c">共 '+total+' 首<span class="ar">›</span></span></div>'
+      : '');
+  const ae=$('#allEntry');
+  if(ae) ae.onclick=()=>openAllWorks(curRole, role);
+  document.querySelectorAll('#worksBox .mkbtn').forEach(b=>b.onclick=()=>{
+    openKC(songOf(songs[+b.dataset.i]||{}));
+  });
+}
+
+/* ---------- 歌曲制作页（对齐 GitHub SONG / PRODUCT MAKER） ---------- */
+const KC_STYLES=[['classic','长方形'],['square_ring','八角形']];
+const KC_OUTS=[
+  ['scene','01 / OUTPUT','钥匙扣商品图','主图 · 实物合成'],
+  ['white','02 / OUTPUT','电商白底图','白底 · 透明底 · 拼版'],
+  ['vinyl','03 / OUTPUT','黑胶播放界面','竖图 · 唱片 · 控制区'],
+];
+const KC_FLOW=[
+  ['① 抓取专辑封面','按歌曲取网易云所属专辑封面（例：《安静》→《范特西》）'],
+  ['② 模糊铺底 + 白框封面','封面放大裁切后高斯模糊铺满底层，再叠同封面清晰版并加白色边框'],
+  ['③ 叠加空白钥匙扣模板','按勾选款式选长方形 / 八角形空白模板，内腔镂空'],
+  ['④ 贴入播放界面卡','网易云播放页按 30×50mm（3:5）裁剪后贴进内腔'],
+];
+function defaultParams(){ return {
+  play_mode:'列表循环', list_title:'我喜欢的音乐', hot_text:'999w+', auto_text:'auto',
+  online_text:'999+人', main_w:1181, dpi:1000, canvas:'方形', bg:'两种', vinyl_w:1200,
+  skin_bg:'纯色', skin_cover:'经典',
+  vip:true, follow:true, extra_contact:true, extra_a4:true, density:32
+};}
+let mkState=null;
+
+function openKC(song){
+  mkState={
+    song: song||{name:'',artists:'',pic:'',album:'',dur:''},
+    styles:new Set(['classic','square_ring']),
+    outputs:new Set(['scene','white','vinyl']),
+    params:defaultParams(), results:null
+  };
+  $('#mkCoverBox').classList.add('hidden');
+  $('#mkCoverUrl').value='';
+  $('#mkParamBody').classList.remove('hidden');
+  $('#mkFold').textContent='收起';
+  $('#kcMask').classList.add('on');
+  showConfig();
+  renderMK();
+}
+function closeKC(){ $('#kcMask').classList.remove('on'); }
+$('#kcClose').onclick=closeKC;
+$('#kcBack').onclick=closeKC;
+$('#mkCancel').onclick=closeKC;
+$('#kcMask').addEventListener('click',e=>{ if(e.target.id==='kcMask') closeKC(); });
+
+/* 更换封面 */
+$('#mkChangeCover').onclick=()=>$('#mkCoverBox').classList.toggle('hidden');
+$('#mkCoverOk').onclick=()=>{
+  const u=$('#mkCoverUrl').value.trim();
+  if(!/^https?:\/\//.test(u)){ toast('请粘贴 http/https 开头的图片地址'); return; }
+  mkState.song.pic=u; $('#mkCover').src=IMG(u,300);
+  $('#mkStart').disabled=false; $('#mkStart').textContent='开始制作 →';
+  $('#mkCoverBox').classList.add('hidden'); toast('封面已更换');
+};
+/* 参数面板折叠 */
+$('#mkFold').onclick=()=>{
+  const hidden=$('#mkParamBody').classList.toggle('hidden');
+  $('#mkFold').textContent=hidden?'展开':'收起';
+};
+
+function showConfig(){
+  $('#mkResultView').classList.add('hidden');
+  $('#mkConfig').classList.remove('hidden');
+  $('#mkFoot').classList.remove('hidden');
+  $('#mkConfig').scrollTop=0;
+}
+function renderMK(){
+  const s=mkState.song;
+  $('#mkSong').textContent=s.name||'未选择歌曲';
+  $('#mkMeta').textContent=[s.artists||'未知歌手', s.album||'—', s.dur||'—'].join(' · ');
+  $('#mkCover').src=s.pic?IMG(s.pic,300):'';
+  renderOuts(); renderStyles(); syncForm(); updateFoot();
+  $('#mkFlow').innerHTML=KC_FLOW.map((x,i)=>
+    '<div class="st"><i>'+(i+1)+'</i><div><b>'+x[0]+'</b> '+esc(x[1])+'</div></div>').join('');
+  $('#mkStart').disabled=!s.pic;
+  $('#mkStart').textContent=s.pic?'开始制作 →':'请先在歌曲列表选择歌曲';
+  syncMkSkin();
+}
+function renderOuts(){
+  $('#mkOuts').innerHTML=KC_OUTS.map(([k,id,nm,sub])=>
+    '<div class="mk-out'+(mkState.outputs.has(k)?' on':'')+'" data-o="'+k+'">'+
+      '<span class="ck"></span><div class="id">'+id+'</div><div class="nm">'+nm+'</div>'+
+      '<div class="sub">'+sub+'</div></div>').join('')+
+    '<div class="mk-out soon"><div class="id">04 / NEXT</div>'+
+      '<div class="nm">NFC 音乐小卡</div><div class="sub">封面 · 链接 · 收藏卡</div>'+
+      '<span class="soon-tag">敬请期待</span></div>';
+  document.querySelectorAll('#mkOuts .mk-out[data-o]').forEach(el=>el.onclick=()=>{
+    const k=el.dataset.o;
+    if(mkState.outputs.has(k)){ if(mkState.outputs.size>1) mkState.outputs.delete(k); }
+    else mkState.outputs.add(k);
+    renderOuts(); updateFoot();
+  });
+}
+function renderStyles(){
+  $('#kcStyles').innerHTML=KC_STYLES.map(([v,n])=>
+    '<button class="mk-chip'+(mkState.styles.has(v)?' on':'')+'" data-s="'+v+'">'+n+'</button>').join('');
+  document.querySelectorAll('#kcStyles .mk-chip').forEach(b=>b.onclick=()=>{
+    const v=b.dataset.s;
+    if(mkState.styles.has(v)){ if(mkState.styles.size>1) mkState.styles.delete(v); }
+    else mkState.styles.add(v);
+    renderStyles(); updateFoot();
+  });
+}
+function syncForm(){
+  const p=mkState.params;
+  const set=(id,v)=>{ const e=$('#'+id); if(e) e.value=v; };
+  set('mkPlayMode',p.play_mode); set('mkListTitle',p.list_title);
+  set('mkHotText',p.hot_text); set('mkAutoText',p.auto_text);
+  set('mkOnline',p.online_text); set('mkMainW',p.main_w); set('mkDpi',p.dpi);
+  set('mkDensity',String(p.density));
+  document.querySelectorAll('#mkParamBody .mk-tag').forEach(t=>
+    t.classList.toggle('on', String(p[t.dataset.k])===t.dataset.v));
+  const ck=(id,v)=>{ const e=$('#'+id); if(e) e.checked=!!v; };
+  ck('mkVip',p.vip); ck('mkFollow',p.follow);
+  ck('mkContact',p.extra_contact); ck('mkA4',p.extra_a4);
+}
+/* 制作细节参数全部可改：输入 / 下拉 / 勾选 / 标签实时写回 */
+$('#mkParamBody').addEventListener('input',e=>{
+  const k=e.target.dataset.k; if(!k) return;
+  mkState.params[k]=(e.target.type==='checkbox')?e.target.checked:e.target.value;
+});
+$('#mkParamBody').addEventListener('change',e=>{
+  const k=e.target.dataset.k; if(!k) return;
+  mkState.params[k]=(e.target.type==='checkbox')?e.target.checked:e.target.value;
+});
+$('#mkParamBody').addEventListener('click',e=>{
+  const t=e.target.closest('.mk-tag'); if(!t) return;
+  mkState.params[t.dataset.k]=t.dataset.v; syncForm();
+});
+function updateFoot(){
+  $('#mkFootNote').textContent='已匹配封面 · 已选 '+mkState.outputs.size+' 类商品 / '+
+    mkState.styles.size+' 种款式，可按需取消';
+}
+function showResult(){
+  $('#mkConfig').classList.add('hidden');
+  $('#mkFoot').classList.add('hidden');
+  $('#mkResultView').classList.remove('hidden');
+  const items=mkState.results||[], groups={};
+  items.forEach(it=>(groups[it.group]=groups[it.group]||[]).push(it));
+  let html='<div class="mk-res-h"><button id="mkResBack">← 返回调整参数</button>'+
+    '<button id="mkResRegen">↻ 重新生成</button></div>'+
+    '<div class="mk-res-title">《'+esc(mkState.song.name||'未命名')+'》制作完成 · 共 '+items.length+' 张</div>';
+  Object.keys(groups).forEach(g=>{
+    html+='<div class="mk-res-group"><b>'+esc(g)+' · '+groups[g].length+' 张</b><div class="mk-res-grid">'+
+      groups[g].map(it=>'<figure'+(g==='钥匙扣商品图'?'':' class="tall"')+'>'+
+        '<img src="'+SC(it.url)+'" loading="lazy">'+
+        '<figcaption>'+esc(it.label)+'<a href="'+SC(it.url)+'" download>下载</a></figcaption></figure>').join('')+
+      '</div></div>';
+  });
+  $('#mkResultView').innerHTML=html;
+  $('#mkResBack').onclick=showConfig;
+  $('#mkResRegen').onclick=genMK;
+  $('#mkResultView').scrollTop=0;
+}
+function genMK(){
+  if(!mkState||!mkState.song.pic){ toast('该歌曲没有封面，换一首试试'); return; }
+  const btn=$('#mkStart'); btn.disabled=true; btn.textContent='生成中…';
+  F('/api/keychain',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      cover_url:mkState.song.pic, song:mkState.song.name, artist:mkState.song.artists,
+      album:mkState.song.album, dur:mkState.song.dur,
+      styles:Array.from(mkState.styles), outputs:Array.from(mkState.outputs),
+      params:Object.assign({}, mkState.params, {player_skin:CUR_SKIN.id||''})
+    })})
+  .then(r=>r.json()).then(d=>{
+    btn.disabled=false; btn.textContent='开始制作 →';
+    if(!d.ok){ toast('生成失败：'+(d.error||'请重试')); return; }
+    mkState.results=d.items||[];
+    showResult();
+  }).catch(()=>{ btn.disabled=false; btn.textContent='开始制作 →'; toast('生成失败，请重试'); });
+}
+$('#mkStart').onclick=genMK;
+
+/* ---------- 全部 XX 全量列表（无限滚动，网易云真实数据）---------- */
+let allState=null;
+function openAllWorks(wt, role){
+  if(!curArtist) return;
+  if(allState&&allState.io) allState.io.disconnect();
+  allState={wt, role, offset:0, loading:false, done:false, total:null, io:null};
+  $('#aPane').innerHTML=
+    '<div class="allhead"><button class="back" id="allBack">‹ 返回</button>'+
+    '<div class="at">全部'+esc(role)+'<span id="allCount"></span></div></div>'+
+    '<div class="tlist" id="allList"></div>'+
+    '<div id="allMore" class="empty"><span class="loading"></span> 正在从网易云抓取…</div>';
+  $('#allBack').onclick=()=>renderSongsTab();
+  /* 全量列表每首歌同样可直接点「制作」，用事件委托避免逐行绑定 */
+  $('#allList').addEventListener('click',e=>{
+    const b=e.target.closest('#allList .mkbtn'); if(!b) return;
+    openKC({name:b.dataset.name,artists:b.dataset.artists,pic:b.dataset.pic,
+            album:b.dataset.album,dur:b.dataset.dur});
+  });
+  loadAllPage();
+  const io=new IntersectionObserver((es)=>es.forEach(e=>{ if(e.isIntersecting) loadAllPage(); }),
+    {root:null, rootMargin:'300px', threshold:0.01});
+  io.observe($('#allMore'));
+  allState.io=io;
+}
+function loadAllPage(){
+  if(!allState||allState.loading||allState.done||!curArtist) return;
+  allState.loading=true;
+  const wt=allState.wt, offset=allState.offset;
+  F('/api/artist/works',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({artist_id:curArtist.id,work_type:wt,limit:100,offset,all:true})})
+  .then(r=>r.json()).then(d=>{
+    allState.loading=false;
+    if(d&&d.ok){
+      const ns=d.songs||[];
+      const list=$('#allList');
+      const base=allState.offset;
+      list.insertAdjacentHTML('beforeend', ns.map((x,i)=>
+        '<div class="r"><span class="no">'+(base+i+1)+'</span>'+
+        '<span class="tt">'+esc(x.name)+
+        '<div class="f">'+esc(x.artists||'')+(x.album?' · 《'+esc(x.album)+'》':'')+'</div></span>'+
+        '<span class="du">'+esc(x.dur||'')+'</span>'+
+        '<button class="mkbtn" data-name="'+esc(x.name)+'" data-artists="'+esc(x.artists||'')+
+        '" data-pic="'+esc(x.pic||'')+'" data-album="'+esc(x.album||'')+
+        '" data-dur="'+esc(x.dur||'')+'">制作</button></div>').join(''));
+      allState.offset=offset+ns.length;
+      allState.total=(typeof d.total==='number')?d.total:allState.total;
+      allState.done=(!d.more)||ns.length===0;
+      const c=$('#allCount'); if(c) c.textContent=allState.total?('· 共 '+allState.total+' 首'):'';
+      const more=$('#allMore');
+      if(more) more.innerHTML=allState.done
+        ? ('已加载全部 '+(allState.offset)+' 首')
+        : '<span class="loading"></span> 加载更多…';
+    } else {
+      allState.done=true;
+      const more=$('#allMore'); if(more) more.innerHTML='加载失败：'+(d&&d.error||'')+
+        '，<span class="relink" onclick="loadAllPage()">重试</span>';
+    }
+  }).catch(()=>{ allState.loading=false; const more=$('#allMore');
+    if(more) more.innerHTML='网络异常，<span class="relink" onclick="loadAllPage()">点此重试</span>'; });
+}
+
+/* ---------- 专辑页 ---------- */
+function openAlbum(id,pic,artistObj){
+  const base=artistAlbums.filter(x=>String(x.id)===String(id))[0]||{};
+  curAlbum={id,pic:base.pic||pic,name:base.name,artist:(artistObj&&artistObj.name)||base.artist||((curArtist&&curArtist.name)||''),
+    date:base.date,year:base.year,size:base.size,detail:null};
+  showTab('viewAlbum');
+  $('#albPic').src=IMG(curAlbum.pic,600);
+  $('#albName').textContent=curAlbum.name||'—';
+  $('#albArtist').textContent=curAlbum.artist||'—';
+  $('#albDate').textContent=curAlbum.date||curAlbum.year||'—';
+  $('#albCount').textContent=curAlbum.size?('共 '+curAlbum.size+' 首'):'';
+  $('#albMsg').textContent=''; $('#albTracks').innerHTML='<div class="r"><span class="loading"></span> 加载曲目…</div>';
+  loadAlbumDetail(id);
+}
+function loadAlbumDetail(id){
+  F('/api/netease/album',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({album_id:id})})
+  .then(r=>r.json()).then(d=>{
+    if(!d.ok){
+      $('#albTracks').innerHTML='<div class="r">网易云接口偶尔限流，曲目暂时没取到。</div>'+
+        '<div class="r" style="border:none"><button class="relink" id="albRetry">重试</button>'+
+        '<span style="font-size:12px;color:var(--mut);align-self:center">不影响制作，生成时也会自动再取一次</span></div>';
+      const rb=$('#albRetry'); if(rb) rb.onclick=()=>{ $('#albTracks').innerHTML='<div class="r"><span class="loading"></span> 重试中…</div>'; loadAlbumDetail(id); };
+      return;
+    }
+    curAlbum.detail=d;
+    if(d.pic){ curAlbum.pic=d.pic; $('#albPic').src=IMG(d.pic,600); }
+    if(d.album) $('#albName').textContent=d.album;
+    if(d.artist){ $('#albArtist').textContent=d.artist; curAlbum.artist=d.artist; }
+    if(d.date||d.year) $('#albDate').textContent=d.date||d.year;
+    const t=d.tracks||[];
+    $('#albCount').textContent='共 '+t.length+' 首';
+    $('#albTracks').innerHTML=t.map(x=>
+      '<div class="r"><span class="no">'+esc(x.num)+'</span>'+
+      '<span class="tt">'+esc(x.title)+(x.sub?'<div class="f">'+esc(x.sub)+'</div>':'')+'</span>'+
+      '<span class="du">'+esc(x.dur)+'</span></div>').join('')||'<div class="r">暂无曲目数据</div>';
+  }).catch(()=>{ $('#albTracks').innerHTML='<div class="r">加载失败</div>'; });
+}
+
+/* ---------- 制作弹层 ---------- */
+$('#openMake').onclick=()=>{
+  if(!curAlbum) return;
+  $('#mkTitle').textContent=curAlbum.name||'—';
+  $('#mkSub').textContent=(curAlbum.artist||'')+' · '+(curAlbum.date||curAlbum.year||'')+' · '+((curAlbum.detail&&curAlbum.detail.tracks||[]).length||curAlbum.size||'?')+' 首';
+  $('#mkPic').src=IMG(curAlbum.pic,300);
+  $('#mkResult').innerHTML=''; $('#mkMsg').textContent='';
+  $('#makeMask').classList.add('on');
+  $('#mkPalMsg').innerHTML='<span class="loading"></span> 正在按封面派生配色…'; $('#mkPalMsg').className='msg';
+  F('/api/img?s=600&url='+encodeURIComponent(curAlbum.pic)).then(r=>r.blob()).then(b=>{
+    if(!b.size) throw 0;
+    const fd=new FormData(); fd.append('cover',new File([b],'c.jpg',{type:'image/jpeg'}));
+    return F('/api/palette',{method:'POST',body:fd}).then(r=>r.json());
+  }).then(d=>{
+    if(d&&d.ok){ $('#mkSw').innerHTML=d.swatches.map(c=>'<div class="c"><i style="background:'+c.hex+'"></i><span>'+c.name+'</span></div>').join('');
+      $('#mkPalMsg').textContent='整套素材将使用以上由封面派生的配色'; $('#mkPalMsg').className='msg ok'; }
+    else throw 0;
+  }).catch(()=>{ $('#mkPalMsg').textContent='配色将在生成时自动完成'; $('#mkPalMsg').className='msg'; });
+};
+$('#mkClose').onclick=()=>$('#makeMask').classList.remove('on');
+$('#makeMask').onclick=e=>{ if(e.target===$('#makeMask')) $('#makeMask').classList.remove('on'); };
+
+$('#mkGo').onclick=()=>{
+  if(!curAlbum) return;
+  const body={album_id:curAlbum.id,pic:curAlbum.pic,album_name:curAlbum.name||'',params:{
+    label:$('#mkLabel').value||'', ean:$('#mkEan').value||'',
+    back_quote1:$('#mkBq1').value||null, back_quote2:$('#mkBq2').value||null,
+    back_script:$('#mkBsc').value||null, tagline:$('#mkTag').value||null,
+    inner_quote1:$('#mkIq1').value||null, inner_quote2:$('#mkIq2').value||null }};
+  $('#mkGo').disabled=true;
+  $('#mkMsg').innerHTML='<span class="loading"></span> 生成中，约需十几秒（取封面→取色→绘制10张图）…'; $('#mkMsg').className='msg';
+  F('/api/generate_from_album',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+  .then(r=>r.json()).then(d=>{
+    $('#mkGo').disabled=false;
+    if(!d.ok){ $('#mkMsg').textContent='生成失败：'+(d.error||''); $('#mkMsg').className='msg err'; return; }
+    $('#mkMsg').textContent='生成完成 ✓'; $('#mkMsg').className='msg ok';
+    const order=['1-封面.png','盘面.png','2-封面背面.png','4-封底.png','3-右侧封.png','5-左侧封.jpg','6-左侧封背面.png','7-内盘底.png','A4打印.jpg'];
+    $('#mkResult').innerHTML=
+      '<div class="ov"><img src="'+SC(d.overview)+'"></div>'+
+      '<div class="gallery">'+order.map(k=>'<figure><img src="'+SC(d.files[k])+'" loading="lazy"><figcaption>'+k+'</figcaption></figure>').join('')+'</div>'+
+      '<div class="dlrow"><a href="'+SC(d.zip)+'"><button>⬇ 下载压缩包</button></a></div>';
+  }).catch(()=>{ $('#mkGo').disabled=false; $('#mkMsg').textContent='请求失败，请重试'; $('#mkMsg').className='msg err'; });
+};
+
+/* ---------- 我的（历史）+ 多选批量删除 ---------- */
+function loadHistory(){
+  F('/api/history').then(r=>r.json()).then(list=>{
+    mineList=list;
+    $('#mineCount').textContent=list.length?('共 '+list.length+' 次'):'';
+    $('#mineEdit').style.display=list.length?'':'none';
+    renderHistory();
+    loadTrashInfo();
+  }).catch(()=>{
+    $('#history').innerHTML='<div class="empty">加载失败，<span class="relink" onclick="loadHistory()">点此重试</span></div>';
+  });
+}
+function renderHistory(){
+  $('#history').style.paddingBottom=mineEdit?'70px':'';
+  $('#history').innerHTML=mineList.length? mineList.map(it=>{
+    const cover=it.files&&it.files.includes('1-封面.png')?('/api/file/'+it.id+'/1-封面.png'):'';
+    return '<div class="item'+(mineSel.has(it.id)?' sel':'')+'" data-id="'+it.id+'">'+
+      (mineEdit?'<span class="ck"></span>':'')+
+      (cover?'<img src="'+SC(cover)+'" loading="lazy">':'')+
+      '<div class="tt"><b>'+esc(it.artist||'未知')+' 《'+esc(it.album||'未命名')+'》</b>'+
+      '<div class="m">'+esc(it.created)+' · '+(((it.params||{}).tracks||[]).length)+' 首</div></div>'+
+      '<span class="pill">'+it.files.length+' 张</span></div>';
+  }).join('') : '<div class="empty">还没有制作记录，去首页或搜索挑一张专辑开始吧</div>';
+  document.querySelectorAll('#history .item').forEach(el=>el.onclick=()=>{
+    const id=el.dataset.id;
+    if(mineEdit){
+      if(mineSel.has(id)) mineSel.delete(id); else mineSel.add(id);
+      renderHistory();
+    }else viewHistory(id);
+  });
+  updMineTools();
+}
+function updMineTools(){
+  $('#mineTools').style.display=mineEdit?'flex':'none';
+  $('#mineSel').textContent='已选 '+mineSel.size+' 项';
+  $('#mineDel').disabled=mineSel.size===0;
+  $('#mineDel').textContent=mineSel.size?('删除 ('+mineSel.size+')'):'删除';
+  $('#mineAll').textContent=(mineList.length&&mineSel.size===mineList.length)?'取消全选':'全选';
+  $('#mineEdit').textContent=mineEdit?'完成':'管理';
+}
+function setMineEdit(on){ mineEdit=on; if(!on) mineSel.clear(); renderHistory(); }
+$('#mineEdit').onclick=()=>setMineEdit(!mineEdit);
+$('#mineDone').onclick=()=>setMineEdit(false);
+$('#mineAll').onclick=()=>{
+  if(mineList.length&&mineSel.size===mineList.length) mineSel.clear();
+  else mineList.forEach(it=>mineSel.add(it.id));
+  renderHistory();
+};
+function toast(msg){
+  const t=$('#toast'); t.textContent=msg; t.style.display='block';
+  clearTimeout(t._tm); t._tm=setTimeout(()=>{t.style.display='none';},2800);
+}
+function loadTrashInfo(){
+  F('/api/trash/info').then(r=>r.json()).then(d=>{
+    const bar=$('#trashBar');
+    if(d.ok&&d.count){
+      bar.style.display='flex';
+      $('#trashInfo').textContent='回收站 '+d.count+' 条 · 占用 '+d.mb+' MB';
+    }else bar.style.display='none';
+  }).catch(()=>{ $('#trashBar').style.display='none'; });
+}
+/* 通用二次确认弹层 */
+let confirmAction=null;
+function openConfirm(title,msg,note,okText,fn){
+  $('#cfmTitle').textContent=title; $('#cfmMsg').textContent=msg;
+  $('#cfmNote').textContent=note; $('#delConfirm').textContent=okText;
+  confirmAction=fn; $('#delMask').style.display='flex';
+}
+$('#delCancel').onclick=()=>{ $('#delMask').style.display='none'; confirmAction=null; };
+$('#delConfirm').onclick=()=>{
+  const fn=confirmAction; $('#delMask').style.display='none'; confirmAction=null;
+  if(fn) fn();
+};
+/* 彻底删除选中记录：真删文件，释放磁盘空间，不可恢复 */
+function doDeleteSelected(ids){
+  const btn=$('#mineDel'); btn.disabled=true; btn.textContent='删除中…';
+  F('/api/history/delete',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ids,purge:true})})
+    .then(r=>r.json()).then(d=>{
+      if(!d.ok){ toast('删除失败：'+(d.error||'请重试')); updMineTools(); return; }
+      mineSel.clear(); mineEdit=false;
+      loadHistory();
+      loadHome();          /* 同步刷新首页「最近制作」 */
+      toast('已彻底删除 '+d.count+' 条，释放 '+d.freed_mb+' MB');
+    }).catch(()=>{ toast('删除失败，请重试'); updMineTools(); });
+}
+$('#mineDel').onclick=()=>{
+  if(!mineSel.size) return;
+  const n=mineSel.size, ids=Array.from(mineSel);
+  openConfirm('彻底删除','确定彻底删除选中的 '+n+' 条制作记录吗？',
+    '成品素材将从磁盘删除，不可恢复','彻底删除',()=>doDeleteSelected(ids));
+};
+/* 清空回收站 */
+function doEmptyTrash(){
+  F('/api/trash/empty',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
+    .then(r=>r.json()).then(d=>{
+      if(!d.ok){ toast('清空失败：'+(d.error||'请重试')); return; }
+      loadTrashInfo();
+      toast('已清空回收站，释放 '+d.freed_mb+' MB');
+    }).catch(()=>toast('清空失败，请重试'));
+}
+$('#trashClear').onclick=()=>{
+  openConfirm('清空回收站','确定彻底清空回收站吗？',
+    '回收站内的成品素材将永久删除，无法恢复','确认清空',doEmptyTrash);
+};
+function viewHistory(id){
+  F('/api/history/'+id).then(r=>r.json()).then(d=>{
+    if(!d.ok) return;
+    showTab('viewAlbum');
+    const r=d.record;
+    curAlbum={id:id,pic:'',name:r.album,artist:r.artist,date:r.created,year:'',size:((r.params||{}).tracks||[]).length,detail:r.params};
+    $('#albName').textContent=r.album||'—';
+    $('#albArtist').textContent=r.artist||'—';
+    $('#albDate').textContent=r.created||'—';
+    $('#albCount').textContent='共 '+((r.params||{}).tracks||[]).length+' 首（已完成制作）';
+    $('#albPic').src=SC(d.files['1-封面.png']);
+    $('#albTracks').innerHTML=((r.params||{}).tracks||[]).map((x,i)=>
+      '<div class="r"><span class="no">'+esc(x.num||(i+1))+'</span>'+
+      '<span class="tt">'+esc(x.title)+(x.sub?'<div class="f">'+esc(x.sub)+'</div>':'')+'</span>'+
+      '<span class="du">'+esc(x.dur)+'</span></div>').join('');
+    const order=['1-封面.png','盘面.png','2-封面背面.png','4-封底.png','3-右侧封.png','5-左侧封.jpg','6-左侧封背面.png','7-内盘底.png','A4打印.jpg'];
+    $('#albMsg').innerHTML='<div class="result"><div class="ov"><img src="'+SC(d.files['★版面总览-1比1.png'])+'"></div>'+
+      '<div class="gallery">'+order.map(k=>'<figure><img src="'+SC(d.files[k])+'" loading="lazy"><figcaption>'+k+'</figcaption></figure>').join('')+'</div>'+
+      '<div class="dlrow"><a href="'+SC(d.zip)+'"><button>⬇ 下载压缩包</button></a></div></div>';
+  });
+}
+
+/* ---------- 装扮中心 · 播放器样式 ---------- */
+/* 数据源为网易云「装扮中心 → 播放器样式」页面真实截图快照，见 data/player_skins.json。
+   此处只负责「选哪个样式」并把它带到歌曲制作请求里；合成图片的逻辑本轮不改。 */
+let SKIN_DATA=null, CUR_SKIN={id:'',name:''}, DRESS_CAT='推荐';
+
+function openDrawer(){ $('#drMask').classList.add('on'); $('#drPanel').classList.add('on'); }
+function closeDrawer(){ $('#drMask').classList.remove('on'); $('#drPanel').classList.remove('on'); }
+function openDress(){
+  $('#dressView').classList.add('on');
+  F('/api/player-skins').then(r=>r.json()).then(d=>{
+    if(!d.ok){ toast('播放器样式加载失败'); return; }
+    SKIN_DATA=d;
+    if(d.selected) CUR_SKIN.id=d.selected;
+    renderDress();
+  });
+}
+function closeDress(){ $('#dressView').classList.remove('on'); syncMkSkin(); }
+function skinById(id){ return (SKIN_DATA&&SKIN_DATA.skins||[]).find(s=>s.id===id)||null; }
+
+$('#topMenu').onclick=openDrawer;
+$('#drMask').onclick=closeDrawer;
+$('#drDress').onclick=()=>{ closeDrawer(); openDress(); };
+document.querySelectorAll('.dr .item[data-no],.dr .foot button').forEach(el=>
+  el.onclick=()=>toast('该入口为界面示意，请点「装扮中心」'));
+$('#dressBack').onclick=closeDress;
+$('#dressOk').onclick=()=>{
+  toast(CUR_SKIN.name?('已选择：'+CUR_SKIN.name):'未选择播放器样式（用默认）');
+  closeDress();
+};
+$('#mkSkinBtn').onclick=openDress;
+
+function renderDress(){
+  if(!SKIN_DATA) return;
+  const d=SKIN_DATA;
+  $('#dressPanels').innerHTML=d.panels.map(x=>
+    '<span class="'+(x===d.active_panel?'on':'')+'" data-p="'+esc(x)+'">'+esc(x)+'</span>').join('');
+  $('#dressCats').innerHTML=d.categories.map(x=>
+    '<span class="'+(x===DRESS_CAT?'on':'')+'" data-c="'+esc(x)+'">'+esc(x)+'</span>').join('');
+  const list=DRESS_CAT==='推荐'?d.skins:d.skins.filter(s=>s.category===DRESS_CAT);
+  $('#dressGrid').innerHTML=list.length?list.map(s=>{
+    const on=CUR_SKIN.id===s.id;
+    const bd=s.right==='VIP'?'<span class="bd">VIP</span>专享':
+             s.right==='SVIP'?'<span class="bd svip">SVIP</span>专享':
+             '<span class="pend">'+esc(s.right)+'</span>';
+    return '<div class="sk'+(on?' on':'')+'" data-id="'+esc(s.id)+'">'+
+      '<div class="ph"><img src="'+SC('/static/skins/'+s.preview)+'" loading="lazy"><span class="pick">✓</span></div>'+
+      '<div class="nm">'+esc(s.name)+(s.name_pending?' <span class="pend">·名称待补</span>':'')+'</div>'+
+      '<div class="rt">'+bd+'</div></div>';
+  }).join(''):'<div class="empty" style="grid-column:1/-1;padding:30px">该系列暂未采集到对应素材（素材来自抓包实际加载的官方 CDN 图，未编造补齐）</div>';
+
+  document.querySelectorAll('#dressPanels span').forEach(el=>el.onclick=()=>{
+    if(el.dataset.p!==d.active_panel) toast('当前只接入「播放器样式」，其他栏目为界面示意');
+  });
+  document.querySelectorAll('#dressCats span').forEach(el=>el.onclick=()=>{
+    DRESS_CAT=el.dataset.c; renderDress();
+  });
+  document.querySelectorAll('#dressGrid .sk').forEach(el=>el.onclick=()=>selectSkin(el.dataset.id));
+
+  const cur=skinById(CUR_SKIN.id);
+  CUR_SKIN.name=cur?cur.name:'';
+  $('#dressCur').textContent=cur?cur.name:'未选择（默认样式）';
+  $('#dressSrc').textContent='样式来源：'+(d.source_short||d.source)+'（采集 '+d.captured_at+'）· '+(d.source_note||'');
+}
+
+function selectSkin(id){
+  const s=skinById(id); if(!s) return;
+  F('/api/player-skins/select',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({id:id})}).then(r=>r.json()).then(d=>{
+      if(!d.ok){ toast('保存失败：'+(d.error||'请重试')); return; }
+      CUR_SKIN={id:id,name:s.name};
+      try{ localStorage.setItem('syf_player_skin',id); }catch(e){}
+      renderDress(); syncMkSkin();
+      toast('已选择：'+s.name);
+    });
+}
+
+function syncMkSkin(){
+  const s=skinById(CUR_SKIN.id);
+  if($('#mkSkinName')) $('#mkSkinName').textContent=s?s.name:'未选择（默认样式）';
+  if($('#mkSkinPic')) $('#mkSkinPic').src=s?SC('/static/skins/'+s.preview):'';
+  if(mkState) mkState.params.player_skin=CUR_SKIN.id||'';
+}
+
+/* 初始化：本地缓存 + 服务端选中态对齐 */
+try{ CUR_SKIN.id=localStorage.getItem('syf_player_skin')||''; }catch(e){}
+F('/api/player-skins').then(r=>r.json()).then(d=>{
+  if(!d.ok) return;
+  SKIN_DATA=d;
+  if(d.selected) CUR_SKIN.id=d.selected;
+  const s=skinById(CUR_SKIN.id); CUR_SKIN.name=s?s.name:'';
+  syncMkSkin();
+});
+
+/* ---------- 初始化 ---------- */
+loadHome();
+</script>
+</body>
+</html>
